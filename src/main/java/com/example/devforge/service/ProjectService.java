@@ -17,6 +17,8 @@ public interface ProjectService {
      // get the projects by the user id 
 
     List<ProjectResponseDto> getProjectsByUser(Long userId);
+
+    List<ProjectResponseDto> searchProjects(String keyword , int page , int size);
     
 
    

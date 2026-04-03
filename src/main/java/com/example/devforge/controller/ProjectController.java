@@ -69,4 +69,17 @@ public class ProjectController {
 
         return ResponseEntity.ok(projectService.getProjectsByUser(userId));
     }
+
+
+
+    @GetMapping("/search")
+    public ResponseEntity<List<ProjectResponseDto>> searchProjects (
+        @RequestParam String keyword ,
+        @RequestParam(defaultValue = "0") int page ,
+        @RequestParam(defaultValue = "10") int size 
+        )
+
+        {
+            return ResponseEntity.ok(projectService.searchProjects(keyword, page, size));
+        }
 }

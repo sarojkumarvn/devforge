@@ -7,6 +7,8 @@ import java.util.function.Function;
 import javax.management.RuntimeErrorException;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.example.devforge.dto.ProjectRequestDto;
@@ -125,6 +127,23 @@ public List<ProjectResponseDto> getProjectsByUser(Long userId) {
                 return dto;
             })
             .toList();
+}
+
+@Override
+public List<ProjectResponseDto> searchProjects(String keyword, int page, int size) {
+    if(keyword == null || keyword.trim().isEmpty()) { // checking of the keyword is empty or what 
+        throw new RuntimeException("Search keyword can not be empty");
+
+    }
+
+    Page<Project> projectPage = projectRepository.findByTitleContainingIgnoreCase(keyword, PageRequest.of(page, size));
+
+    return projectPage.getContent()
+    .stream()
+    .map(project -> modelMapper.map(project , ProjectResponseDto.class))
+    .toList() ;
+
+
 }
 
 

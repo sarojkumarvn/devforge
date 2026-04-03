@@ -1,10 +1,13 @@
 package com.example.devforge.entity;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import com.example.devforge.entity.enums.ProjectStatus;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -17,6 +20,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -46,6 +50,10 @@ public class Project {
     @CollectionTable(name = "project_tech_stack" , joinColumns = @JoinColumn(name = "project_id"))
     @Column(name = "tech")
     private Set<String> techStacks ;
+
+
+ 
+
     
 
 
@@ -78,7 +86,7 @@ public class Project {
     }
 
     public void setGithubLink(String githubLink) {
-        // TODO Auto-generated method stub
+       
         throw new UnsupportedOperationException("Unimplemented method 'setGithubLink'");
     }
 

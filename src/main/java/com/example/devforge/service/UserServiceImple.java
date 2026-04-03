@@ -1,10 +1,11 @@
 package com.example.devforge.service;
 
 import java.util.List;
-import java.util.Optional;
+
 
 import org.modelmapper.ModelMapper;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.example.devforge.dto.UserRequestDto;
@@ -35,64 +36,78 @@ public class UserServiceImple implements UserService {
    
     
 
-    @Override
-    public UserResponseDto createUser(UserRequestDto dto) {
-        if(userRepository.findByEmail(dto.getEmail()).isPresent()) {
-            throw new RuntimeException("User already exists");
-        }
+@Override
+public UserResponseDto createUser(UserRequestDto dto) {
 
-        if(userRepository.findByUserName(dto.getUserName()).isPresent()) {
-            throw new RuntimeException("This username is already exists");
-
-        }
-
-        User user = new User() ;
-        user.setEmail(dto.getEmail());
-        user.setBio(dto.getBio());
-        user.setUserName(dto.getUserName());
-        user.setPassword(dto.getPassword());
-        user.setBio(dto.getBio());
-        user.setLocation(dto.getLocation());
-        user.setSkills(dto.getSkills());
-        user.setInterests(dto.getInterests());
-
-        User savedUser = userRepository.save(user);
-
-
-        UserResponseDto response = modelMapper.map(savedUser , UserResponseDto.class) ;
-
-        return response ;
+    if(userRepository.findByEmail(dto.getEmail()).isPresent()) {
+        throw new RuntimeException("User already exists");
     }
+
+    if(userRepository.findByUserName(dto.getUserName()).isPresent()) {
+        throw new RuntimeException("Username already taken");
+    }
+
+    User user = modelMapper.map(dto, User.class);
+
+    // TODO: encode password when auth is added
+    user.setPassword(dto.getPassword());
+
+    User savedUser = userRepository.save(user);
+
+    return modelMapper.map(savedUser, UserResponseDto.class);
+}
 
    @Override
     public UserResponseDto getUserById(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(()-> new ResourceNotFoundException("User not found with this id : {}" + userId));
+        User user = userRepository.findById(userId)
+                        .orElseThrow(()-> 
+                        new ResourceNotFoundException
+                        ("User not found with this id : {}" + userId));
 
-        return null ;
+        return modelMapper.map(user, UserResponseDto.class);
     }
 
-    //   @Override
-    // public List<UserSummaryDto> getAllUsers() {
-    //     return userRepository.findAll()
-    //             .stream()
-    //             // .map(this::mapToSummaryDto)
-    //             .toList();
-    // }
+    
+@Override
+public UserResponseDto updateUser(Long userId, UserUpdateDto dto) {
 
-    @Override
-    public UserResponseDto updateUser(Long userId, UserUpdateDto dto) {
-       return null ;
-    }
+    User user = userRepository.findById(userId)
+            .orElseThrow(() ->
+                    new ResourceNotFoundException("User not found with id: " + userId));
+
+    user.setBio(dto.getBio());
+    user.setLocation(dto.getLocation());
+    user.setSkills(dto.getSkills());
+    user.setInterests(dto.getInterests());
+    user.setProfilePictureUrl(dto.getProfilePictureUrl());
+
+    User updatedUser = userRepository.save(user);
+
+    return modelMapper.map(updatedUser, UserResponseDto.class);
+}
 
     @Override
     public void deleteUser(Long userId) {
+            User user = userRepository.findById(userId)
+                        .orElseThrow(()-> 
+                        new ResourceNotFoundException
+                        ("User not found with this id : {}" + userId));
+            userRepository.delete(user);
+        
        
     }
+@Override
+public List<UserSummaryDto> getAllUsers(int page, int size) {
 
-    @Override
-    public List<UserSummaryDto> getAllUsers() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getAllUsers'");
-    }
+    Page<User> usersPage = userRepository.findAll(
+            PageRequest.of(page, size)
+    );
+
+    return usersPage
+            .getContent()
+            .stream()
+            .map(user -> modelMapper.map(user, UserSummaryDto.class))
+            .toList();
+}
 
 }

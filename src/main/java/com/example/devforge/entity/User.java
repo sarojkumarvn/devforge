@@ -2,12 +2,16 @@ package com.example.devforge.entity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import com.example.devforge.entity.enums.Interest;
 import com.example.devforge.entity.enums.LinkType;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,12 +26,14 @@ public class User {
     private Long id;
 
     @Column(unique = true, nullable = false)
+    @Email
     private String email;
 
     @Column(nullable = false)
     private String password;
 
     @Column(unique = true, nullable = false)
+    @Size(min = 2 , max = 20)
     private String userName;
 
     @Column(nullable = true)
@@ -54,6 +60,11 @@ public class User {
     @CollectionTable(name = "user_interests", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "interest")
     private Set<Interest> interests;
+
+
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Project> projects = new ArrayList<>();
 
  
     @ElementCollection
@@ -82,5 +93,18 @@ public class User {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+
+
+
+     public void addProject(Project project) {
+        projects.add(project);
+        project.setUser(this);
+    }
+
+    public void removeProject(Project project) {
+        projects.remove(project);
+        project.setUser(null);
     }
 }

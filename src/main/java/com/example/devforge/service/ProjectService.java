@@ -8,7 +8,7 @@ import com.example.devforge.dto.ProjectResponseDto;
 public interface ProjectService {
     ProjectResponseDto createProject(Long userId ,ProjectRequestDto dto) ; ///Create the project 
 
-    ProjectResponseDto updateProject(Long projectId, Long userId , ProjectRequestDto dto) ; // update the project 
+    ProjectResponseDto updateProject(Long userId, Long projectId , ProjectRequestDto dto) ; // update the project 
 
     void deleteProject(Long userId , Long projectId) ;  // service to delte the project 
     ProjectResponseDto getProjectById(Long projectId) ; // service to get the poject by the project id 

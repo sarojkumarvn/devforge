@@ -19,8 +19,9 @@ public class ProjectResponseDto {
     private String description;
     private String githubLink;
     private String liveDemoLink;
-    private Set<String> techStack;
+    private Set<String> techStacks;
     private ProjectStatus status;
+    private String[] photos;
     private Long userId;
     private String userName;
     private LocalDateTime createdAt;

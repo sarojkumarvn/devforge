@@ -1,5 +1,6 @@
 package com.example.devforge.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 
@@ -47,6 +48,13 @@ public UserResponseDto createUser(UserRequestDto dto) {
         throw new RuntimeException("Username already taken");
     }
 
+     
+    LocalDate today = LocalDate.now();
+    if(dto.getDateOfBirth().isAfter(today) || dto.getDateOfBirth().isEqual(today)) {
+        throw new RuntimeException("Your Date of birth is invalid ") ;
+    }
+
+
     User user = modelMapper.map(dto, User.class);
 
     // TODO: encode password when auth is added
@@ -76,6 +84,8 @@ public UserResponseDto updateUser(Long userId, UserUpdateDto dto) {
                     new ResourceNotFoundException("User not found with id: " + userId));
 
     user.setBio(dto.getBio());
+    user.setDateOfBirth(dto.getDateOfBirth());
+    user.setUserName(dto.getUserName());
     user.setLocation(dto.getLocation());
     user.setSkills(dto.getSkills());
     user.setInterests(dto.getInterests());

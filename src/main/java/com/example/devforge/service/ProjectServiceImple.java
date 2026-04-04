@@ -1,10 +1,6 @@
 package com.example.devforge.service;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
-
-import javax.management.RuntimeErrorException;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -34,9 +30,14 @@ public class ProjectServiceImple implements ProjectService {
 
     @Override
     public ProjectResponseDto createProject(Long userId, ProjectRequestDto dto) {
+
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User is not available with the id : {}" + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
         Project project = modelMapper.map(dto, Project.class);
+
+        project.setUser(user);
+
         Project saved = projectRepository.save(project);
 
         ProjectResponseDto response = modelMapper.map(saved, ProjectResponseDto.class);
@@ -47,9 +48,10 @@ public class ProjectServiceImple implements ProjectService {
     }
 
     @Override
-    public ProjectResponseDto updateProject(Long projectId, Long userId, ProjectRequestDto dto) {
+    public ProjectResponseDto updateProject(Long userId, Long projectId, ProjectRequestDto dto) {
+        System.out.println("Service → userId: " + userId + ", projectId: " + projectId);
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ResourceNotFoundException("Project not found with this id : {}" + projectId));
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found with this id :" + projectId));
 
         if (!project.getUser().getId().equals(userId)) {
             throw new RuntimeException("You are not allowed to update this project..");
@@ -88,19 +90,19 @@ public class ProjectServiceImple implements ProjectService {
 
     @Override
     public ProjectResponseDto getProjectById(Long projectId) {
-         Project project = projectRepository.findById(projectId)
+        Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found with this id : {}" + projectId));
-        ProjectResponseDto response = modelMapper.map(project , ProjectResponseDto.class);
+        ProjectResponseDto response = modelMapper.map(project, ProjectResponseDto.class);
         response.setUserId(project.getUser().getId());
         response.setUserName(project.getUser().getUserName());
 
-        return response  ;
-        
+        return response;
+
     }
 
     @Override
     public List<ProjectResponseDto> getAllProjects() {
-        ProjectResponseDto response =  (ProjectResponseDto) projectRepository.findAll().stream()
+        return projectRepository.findAll().stream()
                 .map(project -> {
                     ProjectResponseDto dto = modelMapper.map(project, ProjectResponseDto.class);
                     dto.setUserId(project.getUser().getId());
@@ -108,44 +110,40 @@ public class ProjectServiceImple implements ProjectService {
                     return dto;
                 })
                 .toList();
-
-        return (List<ProjectResponseDto>) response;
     }
 
-@Override
-public List<ProjectResponseDto> getProjectsByUser(Long userId) {
+    @Override
+    public List<ProjectResponseDto> getProjectsByUser(Long userId) {
 
-    User user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-    return projectRepository.findByUser(user)
-            .stream()
-            .map(project -> {
-                ProjectResponseDto dto = modelMapper.map(project, ProjectResponseDto.class);
-                dto.setUserId(user.getId());
-                dto.setUserName(user.getUserName());
-                return dto;
-            })
-            .toList();
-}
-
-@Override
-public List<ProjectResponseDto> searchProjects(String keyword, int page, int size) {
-    if(keyword == null || keyword.trim().isEmpty()) { // checking of the keyword is empty or what 
-        throw new RuntimeException("Search keyword can not be empty");
-
+        return projectRepository.findByUser(user)
+                .stream()
+                .map(project -> {
+                    ProjectResponseDto dto = modelMapper.map(project, ProjectResponseDto.class);
+                    dto.setUserId(user.getId());
+                    dto.setUserName(user.getUserName());
+                    return dto;
+                })
+                .toList();
     }
 
-    Page<Project> projectPage = projectRepository.findByTitleContainingIgnoreCase(keyword, PageRequest.of(page, size));
+    @Override
+    public List<ProjectResponseDto> searchProjects(String keyword, int page, int size) {
+        if (keyword == null || keyword.trim().isEmpty()) { // checking of the keyword is empty or what
+            throw new RuntimeException("Search keyword can not be empty");
 
-    return projectPage.getContent()
-    .stream()
-    .map(project -> modelMapper.map(project , ProjectResponseDto.class))
-    .toList() ;
+        }
 
+        Page<Project> projectPage = projectRepository.findByTitleContainingIgnoreCase(keyword,
+                PageRequest.of(page, size));
 
-}
+        return projectPage.getContent()
+                .stream()
+                .map(project -> modelMapper.map(project, ProjectResponseDto.class))
+                .toList();
 
-
+    }
 
 }

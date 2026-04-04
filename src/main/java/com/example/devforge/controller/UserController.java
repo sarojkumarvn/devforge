@@ -28,63 +28,44 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
     private final UserService userService;
 
-    // create user 
+    // create user
     @PostMapping
     public ResponseEntity<UserResponseDto> createUser(
-        @RequestBody UserRequestDto dto
-    ) {
-        UserResponseDto response = userService.createUser(dto) ;
+            @RequestBody UserRequestDto dto) {
+        UserResponseDto response = userService.createUser(dto);
         return ResponseEntity.ok(response);
 
-
-
-
-
-       
     }
 
-
-
-
-    // Get user by id 
+    // Get user by id
     @GetMapping("/{userId}")
     public ResponseEntity<UserResponseDto> getUserById(
-         @PathVariable Long userId
-    )
-     {
+            @PathVariable Long userId) {
         UserResponseDto response = userService.getUserById(userId);
-        return ResponseEntity.ok(response) ;
+        return ResponseEntity.ok(response);
 
-     }
-
-
+    }
 
     // Get all the users
-@GetMapping
-public ResponseEntity<List<UserSummaryDto>> getAllUsers(
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "10") int size
-) {
-    return ResponseEntity.ok(userService.getAllUsers(page, size));
-}
+    @GetMapping
+    public ResponseEntity<List<UserSummaryDto>> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(userService.getAllUsers(page, size));
+    }
 
     // update the user details
     @PutMapping("/{userId}")
-    public ResponseEntity<UserResponseDto> updateUser (
-        @PathVariable Long userId ,
-        @RequestBody UserUpdateDto request
-    ) 
-     {
+    public ResponseEntity<UserResponseDto> updateUser(
+            @PathVariable Long userId,
+            @RequestBody UserUpdateDto request) {
         UserResponseDto response = userService.updateUser(userId, request);
 
         return ResponseEntity.ok(response);
 
+    }
 
-     }
-
-
-
-    // delete  the user 
+    // delete the user
     @DeleteMapping("/{userId}")
     public ResponseEntity<Void> deleteUser(
             @PathVariable Long userId) {
@@ -92,6 +73,5 @@ public ResponseEntity<List<UserSummaryDto>> getAllUsers(
         userService.deleteUser(userId);
         return ResponseEntity.noContent().build();
     }
-
 
 }

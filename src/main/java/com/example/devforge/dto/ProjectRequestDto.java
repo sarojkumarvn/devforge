@@ -10,10 +10,13 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ProjectRequestDto {
+    
+    private Long userId ;
     private String title ;
     private String description ;
     private String githubLink ;
     private String liveDemoLink ;
+    private String[] photos ;
     private Set<String> techStacks ;
 
 

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.devforge.advice.ApiResponse;
 import com.example.devforge.dto.CommentRequestDto;
 import com.example.devforge.dto.CommentResponseDto;
 import com.example.devforge.dto.ReplyRequestDto;
@@ -17,6 +18,8 @@ import com.example.devforge.service.CommentService;
 
 import lombok.RequiredArgsConstructor;
 
+
+// TESTED 
 @RestController
 @RequestMapping("/comments")
 @RequiredArgsConstructor
@@ -25,30 +28,31 @@ public class CommentController {
     private final CommentService commentService;
 
     // Add Comment
-    @PostMapping
-    public ResponseEntity<String> addComment(
-            @RequestBody CommentRequestDto dto) {
-        commentService.addComment(dto);
-
-        return ResponseEntity.ok("Comment added successfully");
-    }
+   @PostMapping
+public ResponseEntity<ApiResponse<Object>> addComment(@RequestBody CommentRequestDto dto) {
+    commentService.addComment(dto);
+    return ResponseEntity.ok(
+        new ApiResponse<>("Comment added successfully")
+    );
+}
 
     // Reply to comment
 
-    @PostMapping("/{commentId}/reply")
-    public ResponseEntity<String> replyToComment(
-            @PathVariable Long commentId,
-            @RequestBody ReplyRequestDto request
+@PostMapping("/{commentId}/reply")
+public ResponseEntity<ApiResponse<Object>> replyToComment(
+        @PathVariable Long commentId,
+        @RequestBody ReplyRequestDto request
+) {
+    commentService.replyToComment(commentId, request);
 
-    ) {
-        commentService.replyToComment(commentId, request);
-        return ResponseEntity.ok("Replied to the comment!");
-
-    }
+    return ResponseEntity.ok(
+            new ApiResponse<>("Reply added successfully", null, true)
+    );
+}
 
     // Get comments by project
 
-    @GetMapping("/project/{projectId}")
+    @GetMapping("/projects/{projectId}")
     public ResponseEntity<List
     <CommentResponseDto>> getCommentsOfProject(
         @PathVariable Long projectId 
@@ -57,4 +61,6 @@ public class CommentController {
         return ResponseEntity.ok(commentService.getCommentsByProject(projectId));
 
     }
+
+    // TODO ----> Delete comment , Edit comment 
 }

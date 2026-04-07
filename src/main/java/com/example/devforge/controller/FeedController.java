@@ -14,6 +14,8 @@ import com.example.devforge.service.FeedService;
 
 import lombok.RequiredArgsConstructor;
 
+
+//TESTED
 @RestController
 @RequestMapping("/feed")
 @RequiredArgsConstructor

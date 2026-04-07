@@ -17,34 +17,38 @@ import com.example.devforge.service.LikeService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/likes")
+@RequestMapping()
 @RequiredArgsConstructor
 public class LikeController {
+
     private final LikeService likeService;
 
-    @PostMapping
-    public ResponseEntity<String> likeProject(
-            @RequestParam Long userId,
-            @RequestParam Long projectId
-
-    ) {
+    // Like a project
+    @PostMapping("/projects/{projectId}/likes")   // Testing Done 
+    public ResponseEntity<Void> likeProject(
+            @PathVariable Long projectId,
+            @RequestParam Long userId) {
         likeService.likeProject(userId, projectId);
-        return ResponseEntity.ok("Project liked");
+        return ResponseEntity.noContent().build(); 
     }
 
-    @DeleteMapping
-    public ResponseEntity<String> unlikeProject(
-            @RequestParam Long userId,
-            @RequestParam Long projectId) {
-        likeService.unlikeProject(userId, projectId);
-        return ResponseEntity.ok("Project unliked");
-    }
-
-    @GetMapping("/{userId}/recent")
-    public ResponseEntity<List<ProjectResponseDto>> getRecentLikes(
+    // Unlike a project
+    @DeleteMapping("/projects/{projectId}/likes/{userId}")  // Testing Done
+    public ResponseEntity<Void> unlikeProject(
+            @PathVariable Long projectId,
             @PathVariable Long userId) {
+        likeService.unlikeProject(userId, projectId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // Get all liked projects
+    @GetMapping("/users/{userId}/likes")   // Testing Done 
+    public ResponseEntity<List<ProjectResponseDto>> getUserLikes(
+            @PathVariable Long userId,
+            @RequestParam(required = false) String filter) {
+
         return ResponseEntity.ok(
                 likeService.getLikedProjectsLast90Days(userId));
-    }
 
+    }
 }

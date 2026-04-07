@@ -46,7 +46,7 @@ public class ProjectController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        // 🔥 Priority-based filtering
+        //  Priority-based filtering
         if (keyword != null) {
             return ResponseEntity.ok(projectService.searchProjects(keyword, page, size));
         }

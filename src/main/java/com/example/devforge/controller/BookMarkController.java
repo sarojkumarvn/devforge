@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.devforge.advice.ApiResponse;
 import com.example.devforge.dto.ProjectResponseDto;
 import com.example.devforge.service.BookMarkService;
 
@@ -23,23 +24,28 @@ public class BookMarkController {
     private final BookMarkService bookMarkService ;
 
    
-    @PostMapping
-    public ResponseEntity<String> bookmarkProject(
-            @RequestParam Long userId,
-            @RequestParam Long projectId
-    ) {
-        bookMarkService.bookmarkProject(userId, projectId);
-        return ResponseEntity.ok("Project bookmarked");
-    }
+ @PostMapping("/bookmark")
+public ResponseEntity<ApiResponse<Object>> bookmarkProject(
+        @RequestParam Long userId,
+        @RequestParam Long projectId
+) {
+    bookMarkService.bookmarkProject(userId, projectId);
+
+    return ResponseEntity.ok(
+            new ApiResponse<>("Project bookmarked successfully", null, true)
+    );
+}
 
    
     @DeleteMapping
-    public ResponseEntity<String> removeBookmark(
+    public ResponseEntity<ApiResponse<Object>> removeBookmark(
             @RequestParam Long userId,
             @RequestParam Long projectId
     ) {
         bookMarkService.removeBookmark(userId, projectId);
-        return ResponseEntity.ok("Bookmark removed");
+         return ResponseEntity.ok(
+            new ApiResponse<>("BookMark removed successfully", null, true)
+    );
     }
 
     @GetMapping("/{userId}/recent")

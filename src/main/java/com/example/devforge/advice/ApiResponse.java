@@ -1,27 +1,27 @@
 package com.example.devforge.advice;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.time.LocalDateTime;
+@Getter
+@Setter
 
-@Data
 public class ApiResponse<T> {
 
-    private LocalDateTime timeStamp;
+    private String message;
     private T data;
-    private ApiError error;
+    private boolean success;
 
-    public ApiResponse() {
-        this.timeStamp = LocalDateTime.now();
+    // OLD constructor (so your old code doesn't break)
+    public ApiResponse(String message) {
+        this.message = message;
+        this.success = true;
     }
 
-    public ApiResponse(T data) {
-        this();
+    // NEW constructor
+    public ApiResponse(String message, T data, boolean success) {
+        this.message = message;
         this.data = data;
-    }
-
-    public ApiResponse(ApiError error) {
-        this();
-        this.error = error;
+        this.success = success;
     }
 }

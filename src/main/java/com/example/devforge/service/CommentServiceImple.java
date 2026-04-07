@@ -17,19 +17,21 @@ import com.example.devforge.repository.CommentRepository;
 import com.example.devforge.repository.ProjectRepository;
 import com.example.devforge.repository.UserRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 
 @Service
 @RequiredArgsConstructor
 public class CommentServiceImple implements CommentService {
+
     private final UserRepository userRepository ;
     private final ProjectRepository projectRepository ;
     private final CommentRepository commentRepository; 
     private final ModelMapper modelMapper ;
 
     @Override
-    public void addComment(CommentRequestDto dto) {
+    public Comment addComment(CommentRequestDto dto) {
         User user = userRepository.findById(dto.getUserId()).orElseThrow(()-> new ResourceNotFoundException("User not found with this id : {}" + dto.getUserId()));
 
 
@@ -42,32 +44,32 @@ public class CommentServiceImple implements CommentService {
         comment.setProject(project);
         comment.setCreatedAt(LocalDateTime.now());
 
-        commentRepository.save(comment) ;
+        return commentRepository.save(comment);
 
         
     }
 
-    @Override
-    public void replyToComment(Long commentId, ReplyRequestDto dto) {
-    
-    Comment parent = commentRepository.findById(commentId).
-    orElseThrow(()->
-     new ResourceNotFoundException
-     ("Comment not found with this id : {}" + commentId));
+@Transactional
+@Override
+public Comment replyToComment(Long commentId, ReplyRequestDto dto) {
+
+    Comment parent = commentRepository.findById(commentId)
+            .orElseThrow(() ->
+                    new ResourceNotFoundException("Comment not found with id: " + commentId));
 
     User user = userRepository.findById(dto.getUserId())
-    .orElseThrow(()->
-     new ResourceNotFoundException
-     ("User not found with this id : {}" 
-     + dto.getUserId()));
+            .orElseThrow(() ->
+                    new ResourceNotFoundException("User not found with id: " + dto.getUserId()));
 
+    Comment reply = new Comment();
+    reply.setContent(dto.getContent());
+    reply.setUser(user);
+    reply.setProject(parent.getProject());
+    reply.setParent(parent); // ✅ critical
 
+    return commentRepository.save(reply);
+} 
 
-
-
-
-       
-    }
 
     @Override
     public List<CommentResponseDto> getCommentsByProject(Long projectId) {
@@ -83,5 +85,17 @@ public class CommentServiceImple implements CommentService {
 
       
     }
+
+    @Override
+    public void deleteComment(Long userId, Long commentId) {
+        Comment comment = commentRepository.findById(commentId)
+                                .orElseThrow(()-> new ResourceNotFoundException("Comment not found with this id :" + commentId));
+
+
+        User user = userRepository.findById(userId).orElseThrow(()-> new ResourceNotFoundException("User Not found withthis exception : " + userId)) ;
+
+
+    
+}
 
 }

@@ -33,7 +33,7 @@ public class User {
     private String password;
 
     @Column(unique = true, nullable = false)
-    @Size(min = 2 , max = 20)
+    @Size(min = 2, max = 20)
     private String userName;
 
     @Column(nullable = true)
@@ -48,25 +48,20 @@ public class User {
     @Column(nullable = false)
     private Boolean isPrivate = false;
 
-   
     @ElementCollection
     @CollectionTable(name = "user_skills", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "skill")
     private Set<String> skills;
 
- 
     @ElementCollection
     @Enumerated(EnumType.STRING)
     @CollectionTable(name = "user_interests", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "interest")
     private Set<Interest> interests;
 
-
-
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Project> projects = new ArrayList<>();
 
- 
     @ElementCollection
     @Enumerated(EnumType.STRING)
     @CollectionTable(name = "user_links", joinColumns = @JoinColumn(name = "user_id"))
@@ -76,14 +71,19 @@ public class User {
     @Column(nullable = true)
     private LocalDate dateOfBirth;
 
-  
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-  
+    // @ManyToMany
+    // @JoinTable(name = "user_follow", joinColumns = @JoinColumn(name = "follower_id"), inverseJoinColumns = @JoinColumn(name = "following_id"))
+    // private Set<User> followings;
+
+    // @ManyToMany(mappedBy = "followings")
+    // private Set<User> followers;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -95,10 +95,7 @@ public class User {
         this.updatedAt = LocalDateTime.now();
     }
 
-
-
-
-     public void addProject(Project project) {
+    public void addProject(Project project) {
         projects.add(project);
         project.setUser(this);
     }

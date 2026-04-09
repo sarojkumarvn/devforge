@@ -14,12 +14,14 @@ import com.example.devforge.exception.ResourceNotFoundException;
 import com.example.devforge.repository.FollowRepository;
 import com.example.devforge.repository.UserRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class FollowServiceImpl implements FollowService {
     private final UserRepository userRepository;
     private final FollowRepository followRepository;

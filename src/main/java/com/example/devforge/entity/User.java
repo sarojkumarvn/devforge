@@ -77,12 +77,15 @@ public class User {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    // @ManyToMany
-    // @JoinTable(name = "user_follow", joinColumns = @JoinColumn(name = "follower_id"), inverseJoinColumns = @JoinColumn(name = "following_id"))
-    // private Set<User> followings;
 
-    // @ManyToMany(mappedBy = "followings")
-    // private Set<User> followers;
+    @Column(nullable = true)
+    private Long followingCount ;
+
+
+    @Column(nullable = true)
+    private Long followerCount ;
+
+
 
     @PrePersist
     protected void onCreate() {

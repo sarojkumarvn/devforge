@@ -17,8 +17,11 @@ public class CommentResponseDto {
     private Long id;
     private String content;
 
+    
+
     private String userName;
     private LocalDateTime createdAt;
+    private Long projectId ;
   
     private List<CommentResponseDto> replies;
 

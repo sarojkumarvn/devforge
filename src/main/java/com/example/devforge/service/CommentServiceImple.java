@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.devforge.dto.CommentRequestDto;
 import com.example.devforge.dto.CommentResponseDto;
+import com.example.devforge.dto.CommentUpdateRequestDto;
 import com.example.devforge.dto.ReplyRequestDto;
 import com.example.devforge.entity.Comment;
 import com.example.devforge.entity.Project;
@@ -94,8 +95,49 @@ public Comment replyToComment(Long commentId, ReplyRequestDto dto) {
 
         User user = userRepository.findById(userId).orElseThrow(()-> new ResourceNotFoundException("User Not found withthis exception : " + userId)) ;
 
+        commentRepository.deleteById(commentId);
+
+
+
 
     
 }
+
+    @Override
+    public CommentResponseDto editComment(Long userId, Long commentId, CommentUpdateRequestDto dto) {
+        Comment comment = commentRepository.findById(commentId)
+                                            .orElseThrow(
+                                                ()-> new ResourceNotFoundException(
+                                                    "Comment not found with this id : {}"
+                                                    + commentId
+                                                )
+                                            );
+
+        if(dto.getContent() == null || dto.getContent().trim().isEmpty()) {
+            throw new RuntimeException("Comment content can not be empty");
+            
+        }
+       comment.setContent(dto.getContent());
+
+       Comment updated = commentRepository.save(comment) ;
+
+        CommentResponseDto response = modelMapper.map(updated , CommentResponseDto.class);
+
+        response.setId(updated.getUser().getId());
+        response.setProjectId(updated.getProject().getId());
+
+
+        return response ;
+
+
+     
+
+
+        
+
+
+
+     
+    }
 
 }

@@ -94,6 +94,13 @@
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
         </dependency>
+       
+<dependency>
+    <groupId>org.springframework.security</groupId>
+    <artifactId>spring-security-core</artifactId>
+    <version>7.1.0-M2</version>
+    <scope>compile</scope>
+</dependency>
 
     
         <dependency>

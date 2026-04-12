@@ -35,4 +35,19 @@ public class FeedController {
 
 
 
+    // TODO test the end points
+    @GetMapping("/following") 
+    public ResponseEntity<Page<FeedResponseDto>> getFollowingFeeds (
+        @RequestParam Long userId ,
+        @RequestParam(defaultValue = "0") int page ,
+        @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(
+            feedService.getFollowingFeed(page, size, userId)
+        ) ;
+    }
+
+
+
+
 }

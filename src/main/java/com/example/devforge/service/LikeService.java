@@ -10,6 +10,7 @@ public interface LikeService {
     void unlikeProject(Long userId, Long projectId);
 
     List<ProjectResponseDto> getLikedProjectsLast90Days(Long userId);
+    
 
 
 }

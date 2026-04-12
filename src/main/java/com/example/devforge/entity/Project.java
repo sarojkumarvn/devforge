@@ -50,13 +50,11 @@ public class Project {
     @Column(nullable = true)
     private String githubLink;
 
-    
     @ElementCollection
     @CollectionTable(name = "project_tech_stack", joinColumns = @JoinColumn(name = "project_id"))
     @Column(name = "tech")
     private Set<String> techStacks = new HashSet<>();
 
-    
     @ElementCollection
     @CollectionTable(name = "project_photos", joinColumns = @JoinColumn(name = "project_id"))
     @OrderColumn(name = "photos_order")
@@ -66,12 +64,10 @@ public class Project {
     @Enumerated(EnumType.STRING)
     private ProjectStatus status;
 
-    
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-  
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
@@ -81,14 +77,24 @@ public class Project {
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BookMark> bookmarks = new ArrayList<>();
 
-    
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
- 
+    @Column(nullable = false)
+    private Long likeCount = 0L;
+
+    @Column(nullable = false)
+    private Long commentCount = 0L;
+
+    @Column(nullable = false)
+    private Long bookmarkCount = 0L;
+
+    @Column(nullable = false)
+    private Double score = 0.0;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -99,5 +105,38 @@ public class Project {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+  
+    public void incrementLikeCount() {
+        this.likeCount = (this.likeCount == null ? 0 : this.likeCount) + 1;
+    }
+
+    public void decrementLikeCount() {
+        if (this.likeCount != null && this.likeCount > 0) {
+            this.likeCount--;
+        }
+    }
+
+
+    public void incrementCommentCount() {
+        this.commentCount = (this.commentCount == null ? 0 : this.commentCount) + 1;
+    }
+
+    public void decrementCommentCount() {
+        if (this.commentCount != null && this.commentCount > 0) {
+            this.commentCount--;
+        }
+    }
+
+   
+    public void incrementBookmarkCount() {
+        this.bookmarkCount = (this.bookmarkCount == null ? 0 : this.bookmarkCount) + 1;
+    }
+
+    public void decrementBookmarkCount() {
+        if (this.bookmarkCount != null && this.bookmarkCount > 0) {
+            this.bookmarkCount--;
+        }
     }
 }

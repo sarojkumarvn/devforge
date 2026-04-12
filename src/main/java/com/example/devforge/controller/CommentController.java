@@ -60,9 +60,11 @@ public class CommentController {
 
     }
 
-    // TODO ----> Edit comment
 
-    @DeleteMapping("/{userId}/{commentId}")
+
+
+    // Delete comment
+    @DeleteMapping("/{userId}/{commentId}")  // Tested 
     public ResponseEntity<Void> deleteComment(
             @PathVariable Long userId,
             @PathVariable Long commentId) {
@@ -73,7 +75,7 @@ public class CommentController {
 
     }
 
-    @PutMapping("/{userId}/{commentId}")
+    @PutMapping("/{userId}/{commentId}")   // Tested
     public ResponseEntity<CommentResponseDto> updateComment(
             @PathVariable Long userId,
             @PathVariable Long commentId,

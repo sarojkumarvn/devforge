@@ -50,7 +50,6 @@ public class UserServiceImple implements UserService {
 
         User user = modelMapper.map(dto, User.class);
 
-        // TODO: encode password when auth is added
         user.setPassword(dto.getPassword());
 
         User savedUser = userRepository.save(user);

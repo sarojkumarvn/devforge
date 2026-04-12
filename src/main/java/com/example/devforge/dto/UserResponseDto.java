@@ -23,7 +23,7 @@ public class UserResponseDto {
     private Set<String> skills;
     private Set<Interest> interests;
 
-    private Long followerCount;
     private Long followingCount;
+    private Long followerCount;
 
 }

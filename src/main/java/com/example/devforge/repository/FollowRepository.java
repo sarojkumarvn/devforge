@@ -3,25 +3,23 @@ package com.example.devforge.repository;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import com.example.devforge.entity.Follow;
 
 public interface FollowRepository extends JpaRepository<Follow, Long> {
 
-    boolean existsByFollowerIdAndFollowingId(Long followerId, Long followingId); // it will check if they are exist or
-                                                                                 // not
+    boolean existsByFollowerIdAndFollowingId(Long followerId, Long followingId);
 
-    // To remove them
     void deleteByFollowerIdAndFollowingId(Long followerId, Long followingId);
 
-    // To find by the follower id
-    List<Follow> findByFollowerId(Long followerId);
+    @Query("SELECT f.follower.id FROM Follow f WHERE f.following.id = :userId")
+    List<Long> findFollowerIds(Long userId);
 
-    // To find by the following id
-    List<Follow> findByFollowingId(Long followingId);
+    @Query("SELECT f.following.id FROM Follow f WHERE f.follower.id = :userId")
+    List<Long> findFollowingIds(Long userId);
 
-    long countByFollowingId(Long followingId); // followers count
+    long countByFollowingId(Long followingId);
 
-    long countByFollowerId(Long followerId); // following count
-
+    long countByFollowerId(Long followerId);
 }

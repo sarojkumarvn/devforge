@@ -13,6 +13,7 @@ import com.example.devforge.entity.User;
 import com.example.devforge.repository.LikeRepository;
 import com.example.devforge.repository.ProjectRepository;
 import com.example.devforge.repository.UserRepository;
+import com.example.devforge.strategy.FeedScoreStrategy;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,6 +26,7 @@ public class LikeServiceImple implements LikeService {
     private final UserRepository userRepository ;
     private final ProjectRepository projectRepository ;
     private final ModelMapper modelMapper ;
+    private final FeedScoreStrategy feedScoreStrategy ;
 
     @Override
     public void likeProject(Long userId, Long projectId) {
@@ -42,6 +44,9 @@ public class LikeServiceImple implements LikeService {
         like.setUser(user);
         like.setProject(project);
         like.setCreatedAt(LocalDateTime.now());
+
+        double newScore = feedScoreStrategy.calculateScore(project);
+        project.setScore(newScore);
 
         likeRepository.save(like);
         

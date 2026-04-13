@@ -66,7 +66,7 @@ public Comment replyToComment(Long commentId, ReplyRequestDto dto) {
     reply.setContent(dto.getContent());
     reply.setUser(user);
     reply.setProject(parent.getProject());
-    reply.setParent(parent); // ✅ critical
+    reply.setParent(parent); 
 
     return commentRepository.save(reply);
 } 

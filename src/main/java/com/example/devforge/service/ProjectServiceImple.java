@@ -9,9 +9,12 @@ import org.springframework.stereotype.Service;
 
 import com.example.devforge.dto.ProjectRequestDto;
 import com.example.devforge.dto.ProjectResponseDto;
+import com.example.devforge.entity.Community;
 import com.example.devforge.entity.Project;
 import com.example.devforge.entity.User;
 import com.example.devforge.exception.ResourceNotFoundException;
+import com.example.devforge.repository.CommunityMemberRepository;
+import com.example.devforge.repository.CommunityRepository;
 import com.example.devforge.repository.ProjectRepository;
 import com.example.devforge.repository.UserRepository;
 
@@ -27,25 +30,58 @@ public class ProjectServiceImple implements ProjectService {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final CommunityRepository communityRepository ;
+    private final CommunityMemberRepository communityMemberRepository ;
+
 
     @Override
-    public ProjectResponseDto createProject(Long userId, ProjectRequestDto dto) {
+public ProjectResponseDto createProject(Long userId, ProjectRequestDto dto) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+    User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        Project project = modelMapper.map(dto, Project.class);
+    Project project = modelMapper.map(dto, Project.class);
+    project.setUser(user);
 
-        project.setUser(user);
-
-        Project saved = projectRepository.save(project);
-
-        ProjectResponseDto response = modelMapper.map(saved, ProjectResponseDto.class);
-        response.setUserId(user.getId());
-        response.setUserName(user.getUserName());
-
-        return response;
+    // PUBLIC PROJECT
+    if (Boolean.TRUE.equals(dto.getIsPublic())) {
+        project.setIsPublic(true);
+        project.setCommunity(null);
     }
+
+    // COMMUNITY PROJECT
+    else {
+
+        if (dto.getCommunityId() == null) {
+            throw new RuntimeException("Community id required");
+        }
+
+        boolean isMember = communityMemberRepository
+                .existsByUserIdAndCommunityId(userId , dto.getCommunityId());
+
+        if (!isMember) {
+            throw new RuntimeException("You are not a member of this community");
+        }
+
+        Community community = communityRepository.findById(dto.getCommunityId())
+                .orElseThrow(() -> new ResourceNotFoundException("Community not found"));
+
+        project.setIsPublic(false);
+        project.setCommunity(community);
+    }
+
+    Project saved = projectRepository.save(project);
+
+    ProjectResponseDto response =
+            modelMapper.map(saved, ProjectResponseDto.class);
+
+    response.setUserId(user.getId());
+    response.setUserName(user.getUserName());
+
+    return response;
+}
+
+
 
     @Override
     public ProjectResponseDto updateProject(Long userId, Long projectId, ProjectRequestDto dto) {

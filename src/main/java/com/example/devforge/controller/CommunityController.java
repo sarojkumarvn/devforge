@@ -101,4 +101,15 @@ public ResponseEntity<ApiResponse<String>> joinCommunity( // Tested
     }
 
 
+    @GetMapping("/{communityId}/posts")
+public ResponseEntity<?> getCommunityPosts(
+        @PathVariable Long communityId,
+        @RequestParam Long userId) {
+
+    return ResponseEntity.ok(
+            communityService.getCommunityPosts(communityId, userId)
+    );
+}
+
+
 }

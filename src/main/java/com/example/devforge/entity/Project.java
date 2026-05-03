@@ -61,6 +61,13 @@ public class Project {
     @Column(name = "photo_url")
     private List<String> photos = new ArrayList<>();
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "community_id")
+    private Community community;
+
+    @Column(nullable = false)
+    private Boolean isPublic = true;
+
     @Enumerated(EnumType.STRING)
     private ProjectStatus status;
 
@@ -107,7 +114,6 @@ public class Project {
         this.updatedAt = LocalDateTime.now();
     }
 
-  
     public void incrementLikeCount() {
         this.likeCount = (this.likeCount == null ? 0 : this.likeCount) + 1;
     }
@@ -117,7 +123,6 @@ public class Project {
             this.likeCount--;
         }
     }
-
 
     public void incrementCommentCount() {
         this.commentCount = (this.commentCount == null ? 0 : this.commentCount) + 1;
@@ -129,7 +134,6 @@ public class Project {
         }
     }
 
-   
     public void incrementBookmarkCount() {
         this.bookmarkCount = (this.bookmarkCount == null ? 0 : this.bookmarkCount) + 1;
     }

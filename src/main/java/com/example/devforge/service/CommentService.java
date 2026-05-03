@@ -8,6 +8,7 @@ import com.example.devforge.dto.CommentUpdateRequestDto;
 import com.example.devforge.dto.ReplyRequestDto;
 import com.example.devforge.entity.Comment;
 
+
 public interface CommentService {
     Comment addComment(CommentRequestDto dto) ;
 
@@ -18,6 +19,9 @@ public interface CommentService {
     List<CommentResponseDto> getCommentsByProject(Long projectId) ;
 
     CommentResponseDto editComment(Long userId , Long commentId , CommentUpdateRequestDto dto);
+
+
+  
 
 
 

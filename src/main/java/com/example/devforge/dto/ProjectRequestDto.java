@@ -18,6 +18,8 @@ public class ProjectRequestDto {
     private String liveDemoLink ;
     private String[] photos ;
     private Set<String> techStacks ;
+    private Boolean isPublic  ;
+    private Long communityId ;
 
 
 }

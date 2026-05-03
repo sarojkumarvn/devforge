@@ -9,13 +9,16 @@ import org.springframework.stereotype.Service;
 
 import com.example.devforge.dto.CommunityRequestDto;
 import com.example.devforge.dto.CommunityResponseDto;
+import com.example.devforge.dto.ProjectResponseDto;
 import com.example.devforge.dto.UserResponseDto;
 import com.example.devforge.entity.Community;
 import com.example.devforge.entity.CommunityMember;
+import com.example.devforge.entity.Project;
 import com.example.devforge.entity.enums.Role;
 import com.example.devforge.exception.ResourceNotFoundException;
 import com.example.devforge.repository.CommunityMemberRepository;
 import com.example.devforge.repository.CommunityRepository;
+import com.example.devforge.repository.ProjectRepository;
 import com.example.devforge.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -28,6 +31,7 @@ public class CommunityServiceImpl implements CommunityService {
     private final CommunityRepository communityRepository;
     private final ModelMapper modelMapper;
     private final CommunityMemberRepository communityMemberRepository;
+    private final ProjectRepository projectRepository ;
 
     @Override
     public CommunityResponseDto createCommunity(Long userId, CommunityRequestDto dto) {
@@ -125,6 +129,26 @@ public class CommunityServiceImpl implements CommunityService {
                 .map(member -> userRepository.findById(member.getUserId())
                         .orElseThrow(() -> new ResourceNotFoundException("User not found")))
                 .map(user -> modelMapper.map(user, UserResponseDto.class)).toList();
+    }
+
+    @Override
+    public List<ProjectResponseDto> getCommunityPosts(Long communityId, Long userId) {
+        Community community = communityRepository.findById(communityId).orElseThrow(
+            () ->  new ResourceNotFoundException("Community Not found")
+
+
+        );
+
+        boolean isMember = communityMemberRepository.existsByUserIdAndCommunityId(userId, communityId);
+
+        if (!isMember) {
+            throw new RuntimeException("You have to join this community first !") ;
+        } 
+
+        List<Project> projects = projectRepository.findByCommunityIdOrderByCreatedAtDesc(communityId);
+        return projects.stream()
+        .map(project -> modelMapper.map(project , ProjectResponseDto.class)).toList() ;
+        
     }
 
 }

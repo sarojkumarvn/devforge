@@ -1,5 +1,7 @@
 package com.example.devforge.entity;
 
+import java.util.List;
+
 import com.example.devforge.entity.enums.PrivacyType;
 
 import jakarta.persistence.Column;
@@ -30,5 +32,8 @@ public class Community {
     private String bannerUrl;
 
     private PrivacyType privacy;
+
+
+    private List<User> members ;
 
 }

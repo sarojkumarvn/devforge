@@ -39,4 +39,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 """)
 Page<Project> findPopularFeed(Pageable pageable);
 
+List<Project> findByCommunityIdOrderByCreatedAtDesc(Long communityId);
+
 }

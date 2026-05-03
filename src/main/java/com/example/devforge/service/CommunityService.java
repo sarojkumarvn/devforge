@@ -3,10 +3,11 @@ package com.example.devforge.service;
 
 import java.util.List;
 
-
 import com.example.devforge.dto.CommunityRequestDto;
 import com.example.devforge.dto.CommunityResponseDto;
+import com.example.devforge.dto.ProjectResponseDto;
 import com.example.devforge.dto.UserResponseDto;
+import com.example.devforge.entity.Project;
 
 public interface CommunityService {
 
@@ -24,5 +25,7 @@ public interface CommunityService {
 
     String leaveCommunity(Long userId, Long communityId);
 
-    List<UserResponseDto> getAllMembers(Long communityId) ;
+    List<UserResponseDto> getAllMembers(Long communityId);
+
+    List<ProjectResponseDto> getCommunityPosts(Long communityId, Long userId);
 }

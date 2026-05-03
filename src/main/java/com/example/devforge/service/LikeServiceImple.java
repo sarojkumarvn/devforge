@@ -27,6 +27,7 @@ public class LikeServiceImple implements LikeService {
     private final ProjectRepository projectRepository ;
     private final ModelMapper modelMapper ;
     private final FeedScoreStrategy feedScoreStrategy ;
+    
 
     @Override
     public void likeProject(Long userId, Long projectId) {

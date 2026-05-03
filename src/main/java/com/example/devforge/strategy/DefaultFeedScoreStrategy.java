@@ -3,8 +3,14 @@ package com.example.devforge.strategy;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Component;
+
 import com.example.devforge.entity.Project;
 
+
+@Component
+@Primary
 public class DefaultFeedScoreStrategy implements FeedScoreStrategy{
 
     @Override

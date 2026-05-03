@@ -1,5 +1,7 @@
 package com.example.devforge.entity;
 
+import com.example.devforge.entity.enums.PrivacyType;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,20 +14,21 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-@Table(name="community")
+@Table(name = "community")
 public class Community {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id  ;
+    private Long id;
 
+    @Column(name = "community_name")
+    private String name;
 
-    @Column(nullable = false)
-    private String communityName ;
+    private String description;
 
-    
+    private String logoUrl;
 
+    private String bannerUrl;
 
-
-    
+    private PrivacyType privacy;
 
 }

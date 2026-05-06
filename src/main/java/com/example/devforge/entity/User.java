@@ -3,13 +3,22 @@ package com.example.devforge.entity;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.security.core.GrantedAuthority;
+
+import com.example.devforge.dto.UserRequestDto;
+import com.example.devforge.dto.UserResponseDto;
+import com.example.devforge.dto.UserSummaryDto;
+import com.example.devforge.dto.UserUpdateDto;
 import com.example.devforge.entity.enums.Interest;
 import com.example.devforge.entity.enums.LinkType;
+import com.example.devforge.service.UserService;
 
 import jakarta.persistence.*;
+import jakarta.validation.OverridesAttribute;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -19,7 +28,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Table(name = "app_user")
-public class User {
+public class User implements UserService {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -107,4 +116,12 @@ public class User {
         projects.remove(project);
         project.setUser(null);
     }
+
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of();
+    }
+
+  
 }

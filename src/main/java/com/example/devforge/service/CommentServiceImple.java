@@ -11,7 +11,7 @@ import com.example.devforge.dto.CommentResponseDto;
 import com.example.devforge.dto.CommentUpdateRequestDto;
 import com.example.devforge.dto.ReplyRequestDto;
 import com.example.devforge.entity.Comment;
-import com.example.devforge.entity.Community;
+
 import com.example.devforge.entity.Project;
 import com.example.devforge.entity.User;
 import com.example.devforge.exception.ResourceNotFoundException;

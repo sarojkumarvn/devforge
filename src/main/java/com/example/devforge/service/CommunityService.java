@@ -7,7 +7,7 @@ import com.example.devforge.dto.CommunityRequestDto;
 import com.example.devforge.dto.CommunityResponseDto;
 import com.example.devforge.dto.ProjectResponseDto;
 import com.example.devforge.dto.UserResponseDto;
-import com.example.devforge.entity.Project;
+
 
 public interface CommunityService {
 

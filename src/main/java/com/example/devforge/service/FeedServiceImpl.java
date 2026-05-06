@@ -7,9 +7,9 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import com.example.devforge.dto.FeedResponseDto;
-import com.example.devforge.dto.FollowResponseDto;
+
 import com.example.devforge.entity.Project;
-import com.example.devforge.entity.User;
+
 import com.example.devforge.exception.ResourceNotFoundException;
 import com.example.devforge.repository.FollowRepository;
 import com.example.devforge.repository.ProjectRepository;
@@ -77,7 +77,7 @@ public class FeedServiceImpl implements FeedService {
 
     @Override
     public Page<FeedResponseDto> getFollowingFeed(int page, int size, Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(
+        userRepository.findById(userId).orElseThrow(
                 () -> new ResourceNotFoundException("User not found with this id : " + userId));
         List<Long> followingIds = followRepository.findFollowingIds(userId);
 

@@ -133,7 +133,7 @@ public class CommunityServiceImpl implements CommunityService {
 
     @Override
     public List<ProjectResponseDto> getCommunityPosts(Long communityId, Long userId) {
-        Community community = communityRepository.findById(communityId).orElseThrow(
+         communityRepository.findById(communityId).orElseThrow(
             () ->  new ResourceNotFoundException("Community Not found")
 
 

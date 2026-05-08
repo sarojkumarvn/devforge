@@ -8,8 +8,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.devforge.dto.LoginRequestDto;
 import com.example.devforge.dto.LoginResponseDto;
+import com.example.devforge.dto.SignupResponseDto;
+import com.example.devforge.dto.UserRequestDto;
 import com.example.devforge.service.AuthService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -21,6 +24,11 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequestDto) {
         return ResponseEntity.ok(authService.login(loginRequestDto));
+    }
+
+    @PostMapping("/signup")  // TESTED 
+    public ResponseEntity<SignupResponseDto> signup(@Valid @RequestBody UserRequestDto signupRequestDto) {
+        return ResponseEntity.ok(authService.signup(signupRequestDto));
     }
 
 }

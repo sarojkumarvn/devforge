@@ -13,6 +13,7 @@ import com.example.devforge.entity.User;
 import com.example.devforge.repository.LikeRepository;
 import com.example.devforge.repository.ProjectRepository;
 import com.example.devforge.repository.UserRepository;
+import com.example.devforge.security.AuthUtil;
 import com.example.devforge.strategy.FeedScoreStrategy;
 
 import lombok.RequiredArgsConstructor;
@@ -27,10 +28,13 @@ public class LikeServiceImple implements LikeService {
     private final ProjectRepository projectRepository ;
     private final ModelMapper modelMapper ;
     private final FeedScoreStrategy feedScoreStrategy ;
+    private final AuthUtil authUtil;
     
 
     @Override
     public void likeProject(Long userId, Long projectId) {
+           authUtil.requireCurrentUser(userId);
+
            if (likeRepository.findByUserIdAndProjectId(userId, projectId).isPresent()) {
             throw new RuntimeException("Already liked this project");
         }
@@ -46,23 +50,31 @@ public class LikeServiceImple implements LikeService {
         like.setProject(project);
         like.setCreatedAt(LocalDateTime.now());
 
+        project.incrementLikeCount();
         double newScore = feedScoreStrategy.calculateScore(project);
         project.setScore(newScore);
 
         likeRepository.save(like);
+        projectRepository.save(project);
         
     }
 
     @Override
     public void unlikeProject(Long userId, Long projectId) {
+        authUtil.requireCurrentUser(userId);
+
         Like like = likeRepository.findByUserIdAndProjectId(userId, projectId)
                 .orElseThrow(() -> new RuntimeException("Like not found"));
 
+        like.getProject().decrementLikeCount();
         likeRepository.delete(like);
+        projectRepository.save(like.getProject());
     }
 
     @Override
     public List<ProjectResponseDto> getLikedProjectsLast90Days(Long userId) {
+        authUtil.requireCurrentUser(userId);
+
         LocalDateTime last90days = LocalDateTime.now().minusDays(90);
 
 

@@ -1,5 +1,6 @@
 package com.example.devforge.service;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.modelmapper.ModelMapper;
@@ -17,6 +18,7 @@ import com.example.devforge.repository.CommunityMemberRepository;
 import com.example.devforge.repository.CommunityRepository;
 import com.example.devforge.repository.ProjectRepository;
 import com.example.devforge.repository.UserRepository;
+import com.example.devforge.security.AuthUtil;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,23 +32,38 @@ public class ProjectServiceImple implements ProjectService {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
-    private final CommunityRepository communityRepository ;
-    private final CommunityMemberRepository communityMemberRepository ;
+    private final CommunityRepository communityRepository;
+    private final CommunityMemberRepository communityMemberRepository;
+    private final AuthUtil authUtil;
 
-
-    @Override
+@Override
 public ProjectResponseDto createProject(Long userId, ProjectRequestDto dto) {
+
+    authUtil.requireCurrentUser(userId);
 
     User user = userRepository.findById(userId)
             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-    Project project = modelMapper.map(dto, Project.class);
+    // MANUAL ENTITY CREATION
+    Project project = new Project();
+
+    project.setTitle(dto.getTitle());
+    project.setDescription(dto.getDescription());
+
+    project.setGithubLink(dto.getGithubLink());
+    project.setLiveDemoLink(dto.getLiveDemoLink());
+
+    project.setTechStacks(dto.getTechStacks());
+    project.setPhotos(Arrays.asList(dto.getPhotos()));
+
     project.setUser(user);
 
     // PUBLIC PROJECT
     if (Boolean.TRUE.equals(dto.getIsPublic())) {
+
         project.setIsPublic(true);
         project.setCommunity(null);
+
     }
 
     // COMMUNITY PROJECT
@@ -57,7 +74,7 @@ public ProjectResponseDto createProject(Long userId, ProjectRequestDto dto) {
         }
 
         boolean isMember = communityMemberRepository
-                .existsByUserIdAndCommunityId(userId , dto.getCommunityId());
+                .existsByUserIdAndCommunityId(userId, dto.getCommunityId());
 
         if (!isMember) {
             throw new RuntimeException("You are not a member of this community");
@@ -80,12 +97,10 @@ public ProjectResponseDto createProject(Long userId, ProjectRequestDto dto) {
 
     return response;
 }
-
-
-
     @Override
     public ProjectResponseDto updateProject(Long userId, Long projectId, ProjectRequestDto dto) {
-        System.out.println("Service → userId: " + userId + ", projectId: " + projectId);
+        authUtil.requireCurrentUser(userId);
+        log.debug("Updating project. userId={}, projectId={}", userId, projectId);
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found with this id :" + projectId));
 
@@ -112,6 +127,7 @@ public ProjectResponseDto createProject(Long userId, ProjectRequestDto dto) {
 
     @Override
     public void deleteProject(Long userId, Long projectId) {
+        authUtil.requireCurrentUser(userId);
         log.info("Deleting the project with the project ID :  {}" + projectId);
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found with this id : {}" + projectId));

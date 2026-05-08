@@ -28,10 +28,11 @@ public class FollowController {
 
    
    @DeleteMapping
-public ResponseEntity<ApiResponse> unfollow(
+public ResponseEntity<ApiResponse<Object>> unfollow(
     @RequestBody FollowRequestDto dto
 ) {
-    ApiResponse response = new ApiResponse("Unfollowed successfully", null, true);
+    String message = followService.unfollowUser(dto);
+    ApiResponse<Object> response = new ApiResponse<>(message, null, true);
     return ResponseEntity.ok(response);
 }
  

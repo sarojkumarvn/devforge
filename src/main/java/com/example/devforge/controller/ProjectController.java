@@ -38,7 +38,7 @@ public class ProjectController {
         return ResponseEntity.ok(projectService.createProject(userId, dto));
     }
 
-    //  Get Projects (ALL + SEARCH + PAGINATION)
+    //  Get Projects 
     @GetMapping("/projects")
     public ResponseEntity<List<ProjectResponseDto>> getProjects(
             @RequestParam(required = false) String keyword,

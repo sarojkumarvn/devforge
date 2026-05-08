@@ -18,6 +18,7 @@ import com.example.devforge.exception.ResourceNotFoundException;
 import com.example.devforge.repository.CommentRepository;
 import com.example.devforge.repository.ProjectRepository;
 import com.example.devforge.repository.UserRepository;
+import com.example.devforge.security.AuthUtil;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -31,9 +32,12 @@ public class CommentServiceImple implements CommentService {
     private final ProjectRepository projectRepository ;
     private final CommentRepository commentRepository; 
     private final ModelMapper modelMapper ;
+    private final AuthUtil authUtil;
 
     @Override
     public Comment addComment(CommentRequestDto dto) {
+        authUtil.requireCurrentUser(dto.getUserId());
+
         User user = userRepository.findById(dto.getUserId()).orElseThrow(()-> new ResourceNotFoundException("User not found with this id : {}" + dto.getUserId()));
 
 
@@ -46,7 +50,10 @@ public class CommentServiceImple implements CommentService {
         comment.setProject(project);
         comment.setCreatedAt(LocalDateTime.now());
 
-        return commentRepository.save(comment);
+        project.incrementCommentCount();
+        Comment saved = commentRepository.save(comment);
+        projectRepository.save(project);
+        return saved;
 
         
     }
@@ -54,6 +61,7 @@ public class CommentServiceImple implements CommentService {
 @Transactional
 @Override
 public Comment replyToComment(Long commentId, ReplyRequestDto dto) {
+    authUtil.requireCurrentUser(dto.getUserId());
 
     Comment parent = commentRepository.findById(commentId)
             .orElseThrow(() ->
@@ -69,7 +77,10 @@ public Comment replyToComment(Long commentId, ReplyRequestDto dto) {
     reply.setProject(parent.getProject());
     reply.setParent(parent); 
 
-    return commentRepository.save(reply);
+    parent.getProject().incrementCommentCount();
+    Comment saved = commentRepository.save(reply);
+    projectRepository.save(parent.getProject());
+    return saved;
 } 
 
 
@@ -90,13 +101,19 @@ public Comment replyToComment(Long commentId, ReplyRequestDto dto) {
 
     @Override
     public void deleteComment(Long userId, Long commentId) {
+        authUtil.requireCurrentUser(userId);
+
         Comment comment = commentRepository.findById(commentId)
                                 .orElseThrow(()-> new ResourceNotFoundException("Comment not found with this id :" + commentId));
 
 
-        User user = userRepository.findById(userId).orElseThrow(()-> new ResourceNotFoundException("User Not found withthis exception : " + userId)) ;
+        if (!comment.getUser().getId().equals(userId)) {
+            throw new RuntimeException("You are not allowed to delete this comment");
+        }
 
+        comment.getProject().decrementCommentCount();
         commentRepository.deleteById(commentId);
+        projectRepository.save(comment.getProject());
 
 
 
@@ -106,6 +123,8 @@ public Comment replyToComment(Long commentId, ReplyRequestDto dto) {
 
     @Override
     public CommentResponseDto editComment(Long userId, Long commentId, CommentUpdateRequestDto dto) {
+        authUtil.requireCurrentUser(userId);
+
         Comment comment = commentRepository.findById(commentId)
                                             .orElseThrow(
                                                 ()-> new ResourceNotFoundException(
@@ -113,6 +132,10 @@ public Comment replyToComment(Long commentId, ReplyRequestDto dto) {
                                                     + commentId
                                                 )
                                             );
+
+        if (!comment.getUser().getId().equals(userId)) {
+            throw new RuntimeException("You are not allowed to edit this comment");
+        }
 
         if(dto.getContent() == null || dto.getContent().trim().isEmpty()) {
             throw new RuntimeException("Comment content can not be empty");

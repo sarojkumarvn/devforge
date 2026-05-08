@@ -1,15 +1,20 @@
 package com.example.devforge.entity;
 
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.example.devforge.entity.enums.PrivacyType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -31,9 +36,15 @@ public class Community {
 
     private String bannerUrl;
 
+    @Enumerated(EnumType.STRING)
     private PrivacyType privacy;
 
 
+    @Transient
     private List<User> members ;
+
+
+
+    private LocalDateTime CreatedAt ;
 
 }

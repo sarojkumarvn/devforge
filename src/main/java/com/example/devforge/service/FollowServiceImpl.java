@@ -12,6 +12,7 @@ import com.example.devforge.entity.User;
 import com.example.devforge.exception.ResourceNotFoundException;
 import com.example.devforge.repository.FollowRepository;
 import com.example.devforge.repository.UserRepository;
+import com.example.devforge.security.AuthUtil;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -23,10 +24,12 @@ public class FollowServiceImpl implements FollowService {
 
     private final UserRepository userRepository;
     private final FollowRepository followRepository;
+    private final AuthUtil authUtil;
 
     // ✅ FOLLOW USER
     @Override
     public FollowResponseDto followUser(FollowRequestDto dto) {
+        authUtil.requireCurrentUser(dto.getFollowerId());
 
         if (dto.getFollowerId().equals(dto.getFollowingId())) {
             throw new RuntimeException("You can't follow yourself");
@@ -62,6 +65,7 @@ public class FollowServiceImpl implements FollowService {
     // ✅ UNFOLLOW USER
     @Override
     public String unfollowUser(FollowRequestDto dto) {
+        authUtil.requireCurrentUser(dto.getFollowerId());
 
         boolean exists = followRepository
                 .existsByFollowerIdAndFollowingId(

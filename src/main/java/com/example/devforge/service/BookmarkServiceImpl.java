@@ -13,6 +13,7 @@ import com.example.devforge.entity.User;
 import com.example.devforge.repository.BookMarkRepository;
 import com.example.devforge.repository.ProjectRepository;
 import com.example.devforge.repository.UserRepository;
+import com.example.devforge.security.AuthUtil;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,9 +26,11 @@ public class BookmarkServiceImpl implements BookMarkService {
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
     private final ModelMapper modelMapper;
+    private final AuthUtil authUtil;
 
     @Override
     public void bookmarkProject(Long userId, Long projectId) {
+        authUtil.requireCurrentUser(userId);
 
         if (bookmarkRepository.findByUserIdAndProjectId(userId, projectId).isPresent()) {
             throw new RuntimeException("Already bookmarked");
@@ -44,21 +47,27 @@ public class BookmarkServiceImpl implements BookMarkService {
         bookmark.setProject(project);
         bookmark.setCreatedAt(LocalDateTime.now());
 
+        project.incrementBookmarkCount();
         bookmarkRepository.save(bookmark);
+        projectRepository.save(project);
     }
 
     @Override
     public void removeBookmark(Long userId, Long projectId) {
+        authUtil.requireCurrentUser(userId);
 
         BookMark bookmark = bookmarkRepository
                 .findByUserIdAndProjectId(userId, projectId)
                 .orElseThrow(() -> new RuntimeException("Bookmark not found"));
 
+        bookmark.getProject().decrementBookmarkCount();
         bookmarkRepository.delete(bookmark);
+        projectRepository.save(bookmark.getProject());
     }
 
     @Override
     public List<ProjectResponseDto> getBookmarkedProjectsLast90Days(Long userId) {
+        authUtil.requireCurrentUser(userId);
 
         LocalDateTime last90Days = LocalDateTime.now().minusDays(90);
 

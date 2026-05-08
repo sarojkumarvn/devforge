@@ -47,9 +47,9 @@ public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
         }
 
         if (body instanceof String) {
-            return new ApiResponse<String>((String) body, null, isAllowed);
+            return new ApiResponse<String>((String) body, null, true);
         }
 
-        return new ApiResponse<Object>("success", body, isAllowed);
+        return new ApiResponse<Object>("success", body, true);
     }
 }

@@ -65,7 +65,7 @@ public class Project {
     @JoinColumn(name = "community_id")
     private Community community;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "boolean default true")
     private Boolean isPublic = true;
 
     @Enumerated(EnumType.STRING)

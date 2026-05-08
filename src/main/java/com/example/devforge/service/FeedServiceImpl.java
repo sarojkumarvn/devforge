@@ -14,6 +14,7 @@ import com.example.devforge.exception.ResourceNotFoundException;
 import com.example.devforge.repository.FollowRepository;
 import com.example.devforge.repository.ProjectRepository;
 import com.example.devforge.repository.UserRepository;
+import com.example.devforge.security.AuthUtil;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,6 +26,7 @@ public class FeedServiceImpl implements FeedService {
     private final UserRepository userRepository;
     private final FollowRepository followRepository;
     private final ModelMapper modelMapper;
+    private final AuthUtil authUtil;
 
         private FeedResponseDto mapToDto(Project project, Long userId) {
 
@@ -43,6 +45,7 @@ public class FeedServiceImpl implements FeedService {
 
     @Override
     public Page<FeedResponseDto> getFeed(int page, int size, Long userId) {
+        authUtil.requireCurrentUser(userId);
 
         Pageable pageable = PageRequest.of(page, size);
 
@@ -77,6 +80,7 @@ public class FeedServiceImpl implements FeedService {
 
     @Override
     public Page<FeedResponseDto> getFollowingFeed(int page, int size, Long userId) {
+        authUtil.requireCurrentUser(userId);
         userRepository.findById(userId).orElseThrow(
                 () -> new ResourceNotFoundException("User not found with this id : " + userId));
         List<Long> followingIds = followRepository.findFollowingIds(userId);
@@ -97,6 +101,7 @@ public class FeedServiceImpl implements FeedService {
 
     @Override
     public Page<FeedResponseDto> getPopularFeed(int page, int size, Long userId) {
+        authUtil.requireCurrentUser(userId);
         PageRequest pageable = PageRequest.of(page , size) ;
         Page<Project> projects = projectRepository.findPopularFeed(pageable);
 

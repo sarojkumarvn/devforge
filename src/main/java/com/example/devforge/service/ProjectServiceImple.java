@@ -17,6 +17,7 @@ import com.example.devforge.repository.CommunityMemberRepository;
 import com.example.devforge.repository.CommunityRepository;
 import com.example.devforge.repository.ProjectRepository;
 import com.example.devforge.repository.UserRepository;
+import com.example.devforge.security.AuthUtil;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,10 +33,12 @@ public class ProjectServiceImple implements ProjectService {
     private final ModelMapper modelMapper;
     private final CommunityRepository communityRepository ;
     private final CommunityMemberRepository communityMemberRepository ;
+    private final AuthUtil authUtil;
 
 
     @Override
 public ProjectResponseDto createProject(Long userId, ProjectRequestDto dto) {
+    authUtil.requireCurrentUser(userId);
 
     User user = userRepository.findById(userId)
             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -85,7 +88,8 @@ public ProjectResponseDto createProject(Long userId, ProjectRequestDto dto) {
 
     @Override
     public ProjectResponseDto updateProject(Long userId, Long projectId, ProjectRequestDto dto) {
-        System.out.println("Service → userId: " + userId + ", projectId: " + projectId);
+        authUtil.requireCurrentUser(userId);
+        log.debug("Updating project. userId={}, projectId={}", userId, projectId);
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found with this id :" + projectId));
 
@@ -112,6 +116,7 @@ public ProjectResponseDto createProject(Long userId, ProjectRequestDto dto) {
 
     @Override
     public void deleteProject(Long userId, Long projectId) {
+        authUtil.requireCurrentUser(userId);
         log.info("Deleting the project with the project ID :  {}" + projectId);
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found with this id : {}" + projectId));

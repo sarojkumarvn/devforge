@@ -32,7 +32,7 @@ public class AuthService {
     // that will go through the userService
     // which we have implemented in the user entity
     Authentication authentication = authenticationManager.authenticate(
-        new UsernamePasswordAuthenticationToken(loginRequestDto.getUsername(), loginRequestDto.getPassword())
+        new UsernamePasswordAuthenticationToken(loginRequestDto.getEmail(), loginRequestDto.getPassword())
 
     );
 

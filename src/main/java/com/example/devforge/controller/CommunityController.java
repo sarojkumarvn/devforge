@@ -1,4 +1,3 @@
-// CommunityController.java
 package com.example.devforge.controller;
 
 import java.util.List;
@@ -22,7 +21,7 @@ public class CommunityController {
     private final CommunityService communityService;
 
     @PostMapping("/users/{userId}/communities")
-    public ResponseEntity<CommunityResponseDto> createCommunity( // Tested
+    public ResponseEntity<CommunityResponseDto> createCommunity( // TESTED
             @PathVariable Long userId,
             @RequestBody CommunityRequestDto dto) {
 
@@ -31,14 +30,14 @@ public class CommunityController {
     }
 
     @GetMapping("/communities")
-    public ResponseEntity<List<CommunityResponseDto>> getAllCommunities() {  // Tested 
+    public ResponseEntity<List<CommunityResponseDto>> getAllCommunities() { // TESTED
 
         return ResponseEntity.ok(
                 communityService.getAllCommunities());
     }
 
     @GetMapping("/communities/{communityId}")
-    public ResponseEntity<CommunityResponseDto> getCommunityById(  // Tested
+    public ResponseEntity<CommunityResponseDto> getCommunityById( // TESTED
             @PathVariable Long communityId) {
 
         return ResponseEntity.ok(
@@ -46,7 +45,7 @@ public class CommunityController {
     }
 
     @PutMapping("/users/{userId}/communities/{communityId}")
-    public ResponseEntity<CommunityResponseDto> updateCommunity(  // Tested 
+    public ResponseEntity<CommunityResponseDto> updateCommunity( // TESTED
             @PathVariable Long userId,
             @PathVariable Long communityId,
             @RequestBody CommunityRequestDto dto) {
@@ -55,7 +54,7 @@ public class CommunityController {
                 communityService.updateCommunity(userId, communityId, dto));
     }
 
-    @DeleteMapping("/users/{userId}/communities/{communityId}")
+    @DeleteMapping("/users/{userId}/communities/{communityId}") // TESTED
     public ResponseEntity<String> deleteCommunity(
             @PathVariable Long userId,
             @PathVariable Long communityId) {
@@ -65,51 +64,44 @@ public class CommunityController {
         return ResponseEntity.ok("Community deleted successfully");
     }
 
-@PostMapping("/users/{userId}/communities/{communityId}/join")
-public ResponseEntity<ApiResponse<String>> joinCommunity( // Tested 
-        @PathVariable Long userId,
-        @PathVariable Long communityId) {
+    @PostMapping("/users/{userId}/communities/{communityId}/join")
+    public ResponseEntity<ApiResponse<String>> joinCommunity( // TESTED
+            @PathVariable Long userId,
+            @PathVariable Long communityId) {
 
-    String message = communityService.joinCommunity(userId, communityId);
+        String message = communityService.joinCommunity(userId, communityId);
 
-    return ResponseEntity.ok(
-            new ApiResponse<String>(message, message, true));
-}
+        return ResponseEntity.ok(
+                new ApiResponse<String>(message, message, true));
+    }
 
-    @PostMapping("/users/{userId}/communities/{communityId}/leave")
+    @PostMapping("/users/{userId}/communities/{communityId}/leave") // TESTED
     public ResponseEntity<ApiResponse<String>> leaveCommunity(
             @PathVariable Long userId,
             @PathVariable Long communityId) {
-                String message = communityService.leaveCommunity(userId, communityId);
+        String message = communityService.leaveCommunity(userId, communityId);
 
-        return ResponseEntity.ok(new ApiResponse<String>(message , message , true));
+        return ResponseEntity.ok(new ApiResponse<String>(message, message, true));
     }
 
-
-    @GetMapping("/communities/{communityId}/members")
+    @GetMapping("/communities/{communityId}/members") // TESTED
     public ResponseEntity<ApiResponse<List<UserResponseDto>>> getAllMembers(
-        @PathVariable Long communityId
-    ) {
+            @PathVariable Long communityId) {
 
         return ResponseEntity.ok(
                 new ApiResponse<>(
-                        "Memberd Fetched Successfully" ,
-                        communityService.getAllMembers(communityId) ,
-                        true
-                )
-        ) ;
+                        "Memberd Fetched Successfully",
+                        communityService.getAllMembers(communityId),
+                        true));
     }
 
+    @GetMapping("/{communityId}/posts") // TESTED
+    public ResponseEntity<?> getCommunityPosts(
+            @PathVariable Long communityId,
+            @RequestParam Long userId) {
 
-    @GetMapping("/{communityId}/posts")
-public ResponseEntity<?> getCommunityPosts(
-        @PathVariable Long communityId,
-        @RequestParam Long userId) {
-
-    return ResponseEntity.ok(
-            communityService.getCommunityPosts(communityId, userId)
-    );
-}
-
+        return ResponseEntity.ok(
+                communityService.getCommunityPosts(communityId, userId));
+    }
 
 }

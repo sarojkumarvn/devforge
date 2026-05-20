@@ -7,6 +7,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.devforge.dto.ProjectRequestDto;
 import com.example.devforge.dto.ProjectResponseDto;
@@ -26,7 +27,8 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-
+// Keeps the Hibernate session open while ModelMapper reads lazy project fields into DTOs.
+@Transactional(readOnly = true)
 public class ProjectServiceImple implements ProjectService {
 
     private final ProjectRepository projectRepository;
@@ -37,6 +39,7 @@ public class ProjectServiceImple implements ProjectService {
     private final AuthUtil authUtil;
 
 @Override
+@Transactional
 public ProjectResponseDto createProject(Long userId, ProjectRequestDto dto) {
 
     authUtil.requireCurrentUser(userId);
@@ -98,6 +101,7 @@ public ProjectResponseDto createProject(Long userId, ProjectRequestDto dto) {
     return response;
 }
     @Override
+    @Transactional
     public ProjectResponseDto updateProject(Long userId, Long projectId, ProjectRequestDto dto) {
         authUtil.requireCurrentUser(userId);
         log.debug("Updating project. userId={}, projectId={}", userId, projectId);
@@ -126,6 +130,7 @@ public ProjectResponseDto createProject(Long userId, ProjectRequestDto dto) {
     }
 
     @Override
+    @Transactional
     public void deleteProject(Long userId, Long projectId) {
         authUtil.requireCurrentUser(userId);
         log.info("Deleting the project with the project ID :  {}" + projectId);

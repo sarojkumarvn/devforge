@@ -1,7 +1,7 @@
 package com.example.devforge.controller;
 
-import java.util.List;
 
+import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,20 +12,22 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.example.devforge.advice.ApiResponse;
 import com.example.devforge.dto.ProjectRequestDto;
 import com.example.devforge.dto.ProjectResponseDto;
 import com.example.devforge.service.ProjectService;
-
 import lombok.RequiredArgsConstructor;
-/// TESTING DONE 
+
+
+
 @RestController
 @RequestMapping
 @RequiredArgsConstructor
 public class ProjectController {
 
     private final ProjectService projectService;
+
+
 
     //  Create Project
     @PostMapping("/users/{userId}/projects")
@@ -46,7 +48,7 @@ public class ProjectController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        //  Priority-based filtering
+        
         if (keyword != null) {
             return ResponseEntity.ok(projectService.searchProjects(keyword, page, size));
         }

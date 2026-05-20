@@ -31,22 +31,22 @@ public class CommentController {
 
     // Add Comment
     @PostMapping
-    public ResponseEntity<ApiResponse<Object>> addComment(@RequestBody CommentRequestDto dto) {
-        commentService.addComment(dto);
+    public ResponseEntity<ApiResponse<CommentResponseDto>> addComment(@RequestBody CommentRequestDto dto) {
+        CommentResponseDto response = commentService.addComment(dto);
         return ResponseEntity.ok(
-                new ApiResponse<>("Comment added successfully"));
+                new ApiResponse<>("Comment added successfully", response, true));
     }
 
     // Reply to comment
 
     @PostMapping("/{commentId}/reply")
-    public ResponseEntity<ApiResponse<Object>> replyToComment(
+    public ResponseEntity<ApiResponse<CommentResponseDto>> replyToComment(
             @PathVariable Long commentId,
             @RequestBody ReplyRequestDto request) {
-        commentService.replyToComment(commentId, request);
+        CommentResponseDto response = commentService.replyToComment(commentId, request);
 
         return ResponseEntity.ok(
-                new ApiResponse<>("Reply added successfully", null, true));
+                new ApiResponse<>("Reply added successfully", response, true));
     }
 
     // Get comments by project

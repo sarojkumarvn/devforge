@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import com.example.devforge.entity.BookMark;
 
@@ -12,6 +13,9 @@ public interface BookMarkRepository  extends JpaRepository<BookMark , Long>
 {
     Optional<BookMark> findByUserIdAndProjectId(Long userId , Long projectId) ;
      List<BookMark> findByUserIdAndCreatedAtAfter(Long userId, LocalDateTime date);
+
+     @Query("SELECT b.project.id FROM BookMark b WHERE b.user.id = :userId AND b.project.id IN :projectIds")
+     List<Long> findBookmarkedProjectIds(Long userId, List<Long> projectIds);
 
 
 }

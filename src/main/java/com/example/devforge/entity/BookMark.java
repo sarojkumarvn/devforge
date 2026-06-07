@@ -10,6 +10,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.Index;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,6 +19,10 @@ import lombok.Setter;
 @Setter
 @Table(
     name = "bookmarks",
+    indexes = {
+        @Index(name = "idx_bookmark_user_created", columnList = "user_id, createdAt"),
+        @Index(name = "idx_bookmark_project", columnList = "project_id")
+    },
     uniqueConstraints = {
         @UniqueConstraint(columnNames = {"user_id", "project_id"})
     }

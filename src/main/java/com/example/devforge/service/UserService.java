@@ -1,18 +1,17 @@
 package com.example.devforge.service;
 
-import java.util.List;
-
-import com.example.devforge.dto.UserRequestDto;
+import org.springframework.data.domain.Page;
+import com.example.devforge.dto.UserCreateRequestDto;
 import com.example.devforge.dto.UserResponseDto;
 import com.example.devforge.dto.UserSummaryDto;
 import com.example.devforge.dto.UserUpdateDto;
 
 public interface UserService {
-    UserResponseDto createUser(UserRequestDto dto);
+    UserResponseDto createUser(UserCreateRequestDto dto);
 
     UserResponseDto getUserById(Long userId);
 
-    List<UserSummaryDto> getAllUsers(int page, int size);
+    Page<UserSummaryDto> getAllUsers(int page, int size, String sortBy, String direction);
 
     UserResponseDto updateUser(Long userId, UserUpdateDto dto);
 

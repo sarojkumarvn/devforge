@@ -2,7 +2,7 @@ package com.example.devforge.exception;
 
 
 
-public class ResourceNotFoundException extends RuntimeException {
+public class ResourceNotFoundException extends DomainException {
     public ResourceNotFoundException(String message) {
         super(message);
     }

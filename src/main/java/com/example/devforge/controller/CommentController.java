@@ -1,8 +1,8 @@
 package com.example.devforge.controller;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.devforge.advice.ApiResponse;
@@ -19,19 +20,24 @@ import com.example.devforge.dto.CommentUpdateRequestDto;
 import com.example.devforge.dto.ReplyRequestDto;
 import com.example.devforge.service.CommentService;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 
 // TESTED 
 @RestController
 @RequestMapping("/comments")
 @RequiredArgsConstructor
+@Validated
 
 public class CommentController {
     private final CommentService commentService;
 
     // Add Comment
     @PostMapping
-    public ResponseEntity<ApiResponse<CommentResponseDto>> addComment(@RequestBody CommentRequestDto dto) {
+    public ResponseEntity<ApiResponse<CommentResponseDto>> addComment(@Valid @RequestBody CommentRequestDto dto) {
         CommentResponseDto response = commentService.addComment(dto);
         return ResponseEntity.ok(
                 new ApiResponse<>("Comment added successfully", response, true));
@@ -41,8 +47,8 @@ public class CommentController {
 
     @PostMapping("/{commentId}/reply")
     public ResponseEntity<ApiResponse<CommentResponseDto>> replyToComment(
-            @PathVariable Long commentId,
-            @RequestBody ReplyRequestDto request) {
+            @Positive @PathVariable Long commentId,
+            @Valid @RequestBody ReplyRequestDto request) {
         CommentResponseDto response = commentService.replyToComment(commentId, request);
 
         return ResponseEntity.ok(
@@ -52,11 +58,14 @@ public class CommentController {
     // Get comments by project
 
     @GetMapping("/projects/{projectId}")
-    public ResponseEntity<List<CommentResponseDto>> getCommentsOfProject(
-            @PathVariable Long projectId
+    public ResponseEntity<Page<CommentResponseDto>> getCommentsOfProject(
+            @Positive @PathVariable Long projectId,
+            @Min(0) @RequestParam(defaultValue = "0") int page,
+            @Min(1) @Max(100) @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "asc") String direction
 
     ) {
-        return ResponseEntity.ok(commentService.getCommentsByProject(projectId));
+        return ResponseEntity.ok(commentService.getCommentsByProject(projectId, page, size, direction));
 
     }
 
@@ -66,8 +75,8 @@ public class CommentController {
     // Delete comment
     @DeleteMapping("/{userId}/{commentId}")  // Tested 
     public ResponseEntity<Void> deleteComment(
-            @PathVariable Long userId,
-            @PathVariable Long commentId) {
+            @Positive @PathVariable Long userId,
+            @Positive @PathVariable Long commentId) {
 
         commentService.deleteComment(userId, commentId);
 
@@ -77,9 +86,9 @@ public class CommentController {
 
     @PutMapping("/{userId}/{commentId}")   // Tested
     public ResponseEntity<CommentResponseDto> updateComment(
-            @PathVariable Long userId,
-            @PathVariable Long commentId,
-            @RequestBody CommentUpdateRequestDto dto
+            @Positive @PathVariable Long userId,
+            @Positive @PathVariable Long commentId,
+            @Valid @RequestBody CommentUpdateRequestDto dto
 
     )
 

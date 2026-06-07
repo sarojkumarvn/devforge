@@ -12,11 +12,22 @@ import jakarta.persistence.JoinColumn;
 
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.Index;
 import lombok.Getter;
 import lombok.Setter;
 
- @Entity
-@Table(name = "user_follow")
+@Entity
+@Table(
+    name = "user_follow",
+    indexes = {
+        @Index(name = "idx_follow_follower", columnList = "follower_id"),
+        @Index(name = "idx_follow_following", columnList = "following_id")
+    },
+    uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"follower_id", "following_id"})
+    }
+)
 @Getter
 @Setter
 public class Follow {

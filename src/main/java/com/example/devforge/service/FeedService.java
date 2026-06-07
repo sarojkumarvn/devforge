@@ -7,8 +7,8 @@ import org.springframework.data.domain.Page;
 import com.example.devforge.dto.FeedResponseDto;
 
 public interface FeedService {
-    Page<FeedResponseDto> getFeed(int page , int size , Long userId) ;
-    Page<FeedResponseDto> getFollowingFeed(int page , int size , Long userId) ;
-    Page<FeedResponseDto> getPopularFeed(int page , int size  ,Long userId) ;
+    Page<FeedResponseDto> getFeed(int page , int size) ;
+    Page<FeedResponseDto> getFollowingFeed(int page , int size) ;
+    Page<FeedResponseDto> getPopularFeed(int page , int size) ;
 
 }

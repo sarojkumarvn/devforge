@@ -1,16 +1,15 @@
 package com.example.devforge.service;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
 import com.example.devforge.dto.FollowRequestDto;
 import com.example.devforge.dto.FollowResponseDto;
 
 public interface FollowService  {
     FollowResponseDto followUser(FollowRequestDto dto) ;
     String unfollowUser (FollowRequestDto dto) ;
-    List <Long> getAllFollowers (Long userId) ;
+    Page<Long> getAllFollowers(Long userId, int page, int size) ;
 
-    List<Long> getAllFollowings(Long userId) ;
+    Page<Long> getAllFollowings(Long userId, int page, int size) ;
    
 
 }

@@ -12,7 +12,7 @@ import com.example.devforge.dto.LoginRequestDto;
 import com.example.devforge.dto.LoginResponseDto;
 
 import com.example.devforge.dto.SignupResponseDto;
-import com.example.devforge.dto.UserRequestDto;
+import com.example.devforge.dto.UserCreateRequestDto;
 
 import com.example.devforge.service.AuthService;
 
@@ -26,12 +26,12 @@ public class AuthController {
     private final AuthService authService ;
     
     @PostMapping("/login") // TESTED 
-    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequestDto) {
+    public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto loginRequestDto) {
         return ResponseEntity.ok(authService.login(loginRequestDto));
     }
 
     @PostMapping("/signup")  // TESTED 
-    public ResponseEntity<SignupResponseDto> signup(@Valid @RequestBody UserRequestDto signupRequestDto) {
+    public ResponseEntity<SignupResponseDto> signup(@Valid @RequestBody UserCreateRequestDto signupRequestDto) {
         return ResponseEntity.ok(authService.signup(signupRequestDto));
     }
 

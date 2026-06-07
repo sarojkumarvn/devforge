@@ -9,8 +9,9 @@ import org.springframework.stereotype.Service;
 import com.example.devforge.dto.LoginRequestDto;
 import com.example.devforge.dto.LoginResponseDto;
 import com.example.devforge.dto.SignupResponseDto;
-import com.example.devforge.dto.UserRequestDto;
+import com.example.devforge.dto.UserCreateRequestDto;
 import com.example.devforge.entity.User;
+import com.example.devforge.exception.ConflictException;
 import com.example.devforge.repository.UserRepository;
 import com.example.devforge.security.AuthUtil;
 
@@ -47,14 +48,14 @@ public class AuthService {
 
 
   // Signup service implementation
-  public SignupResponseDto signup(UserRequestDto signupRequestDto) {
+  public SignupResponseDto signup(UserCreateRequestDto signupRequestDto) {
 
     if (userRepository.findByUserName(signupRequestDto.getUserName()).isPresent()) {
-      throw new IllegalArgumentException("Username already exists");
+      throw new ConflictException("Username already exists");
     }
 
     if (userRepository.findByEmail(signupRequestDto.getEmail()).isPresent()) {
-      throw new IllegalArgumentException("Email already exists");
+      throw new ConflictException("Email already exists");
     }
 
     User user = User.builder()

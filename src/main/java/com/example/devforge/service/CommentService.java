@@ -1,7 +1,6 @@
 package com.example.devforge.service;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
 import com.example.devforge.dto.CommentRequestDto;
 import com.example.devforge.dto.CommentResponseDto;
 import com.example.devforge.dto.CommentUpdateRequestDto;
@@ -14,7 +13,7 @@ public interface CommentService {
 
     void deleteComment(Long userId , Long commentId) ;
 
-    List<CommentResponseDto> getCommentsByProject(Long projectId) ;
+    Page<CommentResponseDto> getCommentsByProject(Long projectId, int page, int size, String direction) ;
 
     CommentResponseDto editComment(Long userId , Long commentId , CommentUpdateRequestDto dto);
 

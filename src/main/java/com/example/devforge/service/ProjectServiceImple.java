@@ -1,19 +1,31 @@
 package com.example.devforge.service;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
-import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.devforge.dto.ProjectRequestDto;
+import com.example.devforge.dto.ProjectCreateRequestDto;
 import com.example.devforge.dto.ProjectResponseDto;
+import com.example.devforge.dto.ProjectUpdateRequestDto;
 import com.example.devforge.entity.Community;
 import com.example.devforge.entity.Project;
 import com.example.devforge.entity.User;
+import com.example.devforge.exception.BadRequestException;
+import com.example.devforge.exception.ForbiddenException;
 import com.example.devforge.exception.ResourceNotFoundException;
 import com.example.devforge.repository.CommunityMemberRepository;
 import com.example.devforge.repository.CommunityRepository;
@@ -33,14 +45,15 @@ public class ProjectServiceImple implements ProjectService {
 
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
-    private final ModelMapper modelMapper;
     private final CommunityRepository communityRepository;
     private final CommunityMemberRepository communityMemberRepository;
     private final AuthUtil authUtil;
 
-@Override
-@Transactional
-public ProjectResponseDto createProject(Long userId, ProjectRequestDto dto) {
+    @Override
+    @Transactional
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @CacheEvict(cacheNames = {"projectPages", "feedPages", "communityPosts", "likedProjects", "bookmarkedProjects"}, allEntries = true)
+    public ProjectResponseDto createProject(Long userId, ProjectCreateRequestDto dto) {
 
     authUtil.requireCurrentUser(userId);
 
@@ -57,7 +70,7 @@ public ProjectResponseDto createProject(Long userId, ProjectRequestDto dto) {
     project.setLiveDemoLink(dto.getLiveDemoLink());
 
     project.setTechStacks(dto.getTechStacks());
-    project.setPhotos(Arrays.asList(dto.getPhotos()));
+    project.setPhotos(dto.getPhotos() == null ? new ArrayList<>() : Arrays.asList(dto.getPhotos()));
 
     project.setUser(user);
 
@@ -73,14 +86,14 @@ public ProjectResponseDto createProject(Long userId, ProjectRequestDto dto) {
     else {
 
         if (dto.getCommunityId() == null) {
-            throw new RuntimeException("Community id required");
+            throw new BadRequestException("Community id required");
         }
 
         boolean isMember = communityMemberRepository
                 .existsByUserIdAndCommunityId(userId, dto.getCommunityId());
 
         if (!isMember) {
-            throw new RuntimeException("You are not a member of this community");
+            throw new ForbiddenException("You are not a member of this community");
         }
 
         Community community = communityRepository.findById(dto.getCommunityId())
@@ -92,24 +105,21 @@ public ProjectResponseDto createProject(Long userId, ProjectRequestDto dto) {
 
     Project saved = projectRepository.save(project);
 
-    ProjectResponseDto response =
-            modelMapper.map(saved, ProjectResponseDto.class);
-
-    response.setUserId(user.getId());
-    response.setUserName(user.getUserName());
-
-    return response;
+    return toProjectResponse(saved);
 }
     @Override
     @Transactional
-    public ProjectResponseDto updateProject(Long userId, Long projectId, ProjectRequestDto dto) {
-        authUtil.requireCurrentUser(userId);
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @CachePut(cacheNames = "projects", key = "#projectId + ':viewer:' + @authUtil.getCurrentCacheUserId()")
+    @CacheEvict(cacheNames = {"projectPages", "feedPages", "communityPosts", "likedProjects", "bookmarkedProjects"}, allEntries = true)
+    public ProjectResponseDto updateProject(Long userId, Long projectId, ProjectUpdateRequestDto dto) {
+        authUtil.requireCurrentUserOrAdmin(userId);
         log.debug("Updating project. userId={}, projectId={}", userId, projectId);
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found with this id :" + projectId));
 
-        if (!project.getUser().getId().equals(userId)) {
-            throw new RuntimeException("You are not allowed to update this project..");
+        if (!project.getUser().getId().equals(userId) && !authUtil.isAdmin()) {
+            throw new ForbiddenException("You are not allowed to update this project");
 
         }
 
@@ -118,27 +128,25 @@ public ProjectResponseDto createProject(Long userId, ProjectRequestDto dto) {
         project.setGithubLink(dto.getGithubLink());
         project.setLiveDemoLink(dto.getLiveDemoLink());
         project.setTechStacks(dto.getTechStacks());
+        project.setPhotos(dto.getPhotos() == null ? new ArrayList<>() : Arrays.asList(dto.getPhotos()));
 
         Project updated = projectRepository.save(project);
 
-        ProjectResponseDto response = modelMapper.map(updated, ProjectResponseDto.class);
-
-        response.setUserId(updated.getUser().getId());
-        response.setUserName(updated.getUser().getUserName());
-
-        return response;
+        return toProjectResponse(updated);
     }
 
     @Override
     @Transactional
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @CacheEvict(cacheNames = {"projects", "projectPages", "feedPages", "communityPosts", "projectComments", "likedProjects", "bookmarkedProjects"}, allEntries = true)
     public void deleteProject(Long userId, Long projectId) {
-        authUtil.requireCurrentUser(userId);
+        authUtil.requireCurrentUserOrAdmin(userId);
         log.info("Deleting the project with the project ID :  {}" + projectId);
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found with this id : {}" + projectId));
 
-        if (!project.getUser().getId().equals(userId)) {
-            throw new RuntimeException("You are not allowed to delete this project..");
+        if (!project.getUser().getId().equals(userId) && !authUtil.isAdmin()) {
+            throw new ForbiddenException("You are not allowed to delete this project");
 
         }
         projectRepository.delete(project);
@@ -146,61 +154,101 @@ public ProjectResponseDto createProject(Long userId, ProjectRequestDto dto) {
     }
 
     @Override
+    @Cacheable(cacheNames = "projects", key = "#projectId + ':viewer:' + @authUtil.getCurrentCacheUserId()")
     public ProjectResponseDto getProjectById(Long projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found with this id : {}" + projectId));
-        ProjectResponseDto response = modelMapper.map(project, ProjectResponseDto.class);
-        response.setUserId(project.getUser().getId());
-        response.setUserName(project.getUser().getUserName());
-
-        return response;
+        requireCanViewProject(project);
+        return toProjectResponse(project);
 
     }
 
     @Override
-    public List<ProjectResponseDto> getAllProjects() {
-        return projectRepository.findAll().stream()
-                .map(project -> {
-                    ProjectResponseDto dto = modelMapper.map(project, ProjectResponseDto.class);
-                    dto.setUserId(project.getUser().getId());
-                    dto.setUserName(project.getUser().getUserName());
-                    return dto;
-                })
-                .toList();
+    public Page<ProjectResponseDto> getAllProjects(int page, int size, String sortBy, String direction) {
+        Pageable pageable = buildPageRequest(page, size, sortBy, direction);
+        return projectRepository.findVisibleProjects(currentViewerId(), authUtil.isAdmin(), pageable)
+                .map(this::toProjectResponse);
     }
 
     @Override
-    public List<ProjectResponseDto> getProjectsByUser(Long userId) {
+    public Page<ProjectResponseDto> getProjectsByUser(Long userId, int page, int size, String sortBy, String direction) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        return projectRepository.findByUser(user)
-                .stream()
-                .map(project -> {
-                    ProjectResponseDto dto = modelMapper.map(project, ProjectResponseDto.class);
-                    dto.setUserId(user.getId());
-                    dto.setUserName(user.getUserName());
-                    return dto;
-                })
-                .toList();
+        Pageable pageable = buildPageRequest(page, size, sortBy, direction);
+        return projectRepository.findVisibleByUserId(userId, currentViewerId(), authUtil.isAdmin(), pageable)
+                .map(this::toProjectResponse);
     }
 
     @Override
-    public List<ProjectResponseDto> searchProjects(String keyword, int page, int size) {
+    public Page<ProjectResponseDto> searchProjects(String keyword, int page, int size, String sortBy, String direction) {
         if (keyword == null || keyword.trim().isEmpty()) { // checking of the keyword is empty or what
-            throw new RuntimeException("Search keyword can not be empty");
+            throw new BadRequestException("Search keyword can not be empty");
 
         }
 
-        Page<Project> projectPage = projectRepository.findByTitleContainingIgnoreCase(keyword,
-                PageRequest.of(page, size));
+        Pageable pageable = buildPageRequest(page, size, sortBy, direction);
+        return projectRepository.searchVisibleByTitle(keyword, currentViewerId(), authUtil.isAdmin(), pageable)
+                .map(this::toProjectResponse);
 
-        return projectPage.getContent()
-                .stream()
-                .map(project -> modelMapper.map(project, ProjectResponseDto.class))
-                .toList();
+    }
 
+    private PageRequest buildPageRequest(int page, int size, String sortBy, String direction) {
+        String property = allowedSorts().contains(sortBy) ? sortBy : "createdAt";
+        Sort.Direction sortDirection = "asc".equalsIgnoreCase(direction) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        return PageRequest.of(page, size, Sort.by(sortDirection, property));
+    }
+
+    private Set<String> allowedSorts() {
+        return Set.of("createdAt", "updatedAt", "title", "score", "likeCount", "commentCount", "bookmarkCount");
+    }
+
+    private void requireCanViewProject(Project project) {
+        if (!canViewProject(project)) {
+            throw new AccessDeniedException("Forbidden");
+        }
+    }
+
+    private boolean canViewProject(Project project) {
+        if (Boolean.TRUE.equals(project.getIsPublic())) {
+            return true;
+        }
+
+        return authUtil.getCurrentUserOptional()
+                .map(user -> user.getRole() == com.example.devforge.entity.enums.Role.ADMIN
+                        || user.getId().equals(project.getUser().getId())
+                        || (project.getCommunity() != null
+                                && communityMemberRepository.existsByUserIdAndCommunityId(
+                                        user.getId(), project.getCommunity().getId())))
+                .orElse(false);
+    }
+
+    private Long currentViewerId() {
+        return authUtil.getCurrentUserIdOptional().orElse(0L);
+    }
+
+    private ProjectResponseDto toProjectResponse(Project project) {
+        ProjectResponseDto dto = new ProjectResponseDto();
+        dto.setId(project.getId());
+        dto.setTitle(project.getTitle());
+        dto.setDescription(project.getDescription());
+        dto.setGithubLink(project.getGithubLink());
+        dto.setLiveDemoLink(project.getLiveDemoLink());
+        dto.setTechStacks(project.getTechStacks());
+        dto.setStatus(project.getStatus());
+        dto.setPhotos(project.getPhotos().toArray(new String[0]));
+        dto.setUserId(project.getUser().getId());
+        dto.setUserName(project.getUser().getUserName());
+        dto.setCreatedAt(project.getCreatedAt());
+        dto.setIsPublic(project.getIsPublic());
+        dto.setLikeCount(project.getLikeCount());
+        dto.setCommentCount(project.getCommentCount());
+        dto.setBookmarkCount(project.getBookmarkCount());
+        if (project.getCommunity() != null) {
+            dto.setCommunityId(project.getCommunity().getId());
+        }
+        return dto;
     }
 
 }

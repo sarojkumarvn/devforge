@@ -1,8 +1,9 @@
 package com.example.devforge.controller;
 
 
-import java.util.List;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,9 +14,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.example.devforge.advice.ApiResponse;
-import com.example.devforge.dto.ProjectRequestDto;
+import com.example.devforge.dto.ProjectCreateRequestDto;
 import com.example.devforge.dto.ProjectResponseDto;
+import com.example.devforge.dto.ProjectUpdateRequestDto;
 import com.example.devforge.service.ProjectService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 
 
@@ -23,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping
 @RequiredArgsConstructor
+@Validated
 public class ProjectController {
 
     private final ProjectService projectService;
@@ -32,8 +39,8 @@ public class ProjectController {
     //  Create Project
     @PostMapping("/users/{userId}/projects")
     public ResponseEntity<ProjectResponseDto> createProject(
-            @PathVariable Long userId,
-            @RequestBody ProjectRequestDto dto) {
+            @Positive @PathVariable Long userId,
+            @Valid @RequestBody ProjectCreateRequestDto dto) {
                 
 
 
@@ -42,28 +49,30 @@ public class ProjectController {
 
     //  Get Projects 
     @GetMapping("/projects")
-    public ResponseEntity<List<ProjectResponseDto>> getProjects(
+    public ResponseEntity<Page<ProjectResponseDto>> getProjects(
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Long userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @Positive @RequestParam(required = false) Long userId,
+            @Min(0) @RequestParam(defaultValue = "0") int page,
+            @Min(1) @Max(100) @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction) {
 
         
         if (keyword != null) {
-            return ResponseEntity.ok(projectService.searchProjects(keyword, page, size));
+            return ResponseEntity.ok(projectService.searchProjects(keyword, page, size, sortBy, direction));
         }
 
         if (userId != null) {
-            return ResponseEntity.ok(projectService.getProjectsByUser(userId));
+            return ResponseEntity.ok(projectService.getProjectsByUser(userId, page, size, sortBy, direction));
         }
 
-        return ResponseEntity.ok(projectService.getAllProjects());
+        return ResponseEntity.ok(projectService.getAllProjects(page, size, sortBy, direction));
     }
 
 
     @GetMapping("/projects/{projectId:\\d+}")
     public ResponseEntity<ProjectResponseDto> getProjectById(
-            @PathVariable Long projectId) {
+            @Positive @PathVariable Long projectId) {
 
         return ResponseEntity.ok(projectService.getProjectById(projectId));
     }
@@ -71,9 +80,9 @@ public class ProjectController {
     // Update Project
     @PutMapping("/users/{userId}/projects/{projectId}")
     public ResponseEntity<ProjectResponseDto> updateProject(
-            @PathVariable Long userId,
-            @PathVariable Long projectId,
-            @RequestBody ProjectRequestDto dto) {
+            @Positive @PathVariable Long userId,
+            @Positive @PathVariable Long projectId,
+            @Valid @RequestBody ProjectUpdateRequestDto dto) {
 
         return ResponseEntity.ok(projectService.updateProject(userId, projectId, dto));
     }
@@ -81,8 +90,8 @@ public class ProjectController {
     //  Delete Project
     @DeleteMapping("/users/{userId}/projects/{projectId}")
     public ResponseEntity<ApiResponse> deleteProject(
-            @PathVariable Long userId,
-            @PathVariable Long projectId) {
+            @Positive @PathVariable Long userId,
+            @Positive @PathVariable Long projectId) {
 
         projectService.deleteProject(userId, projectId);
         return ResponseEntity.ok(new ApiResponse("Project deleted successfully"));

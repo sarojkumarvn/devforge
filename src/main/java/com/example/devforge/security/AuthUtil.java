@@ -2,6 +2,7 @@ package com.example.devforge.security;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.Optional;
 import java.util.function.Function;
 
 import javax.crypto.SecretKey;
@@ -59,15 +60,28 @@ public class AuthUtil {
         return getCurrentUser().getId();
     }
 
+    public Optional<Long> getCurrentUserIdOptional() {
+        return getCurrentUserOptional().map(User::getId);
+    }
+
+    public Long getCurrentCacheUserId() {
+        return getCurrentUserIdOptional().orElse(0L);
+    }
+
     public User getCurrentUser() {
+        return getCurrentUserOptional()
+                .orElseThrow(() -> new AccessDeniedException("Authenticated user is required"));
+    }
+
+    public Optional<User> getCurrentUserOptional() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()
                 || !(authentication.getPrincipal() instanceof User user)) {
-            throw new AccessDeniedException("Authenticated user is required");
+            return Optional.empty();
         }
 
-        return user;
+        return Optional.of(user);
     }
 
     public void requireCurrentUser(Long userId) {
@@ -77,7 +91,9 @@ public class AuthUtil {
     }
 
     public boolean isAdmin() {
-        return getCurrentUser().getRole() == Role.ADMIN;
+        return getCurrentUserOptional()
+                .map(user -> user.getRole() == Role.ADMIN)
+                .orElse(false);
     }
 
     public void requireCurrentUserOrAdmin(Long userId) {

@@ -1,23 +1,23 @@
 // CommunityService.java
 package com.example.devforge.service;
 
-import java.util.List;
-
-import com.example.devforge.dto.CommunityRequestDto;
+import org.springframework.data.domain.Page;
+import com.example.devforge.dto.CommunityCreateRequestDto;
 import com.example.devforge.dto.CommunityResponseDto;
+import com.example.devforge.dto.CommunityUpdateRequestDto;
 import com.example.devforge.dto.ProjectResponseDto;
 import com.example.devforge.dto.UserResponseDto;
 
 
 public interface CommunityService {
 
-    CommunityResponseDto createCommunity(Long userId, CommunityRequestDto dto);
+    CommunityResponseDto createCommunity(Long userId, CommunityCreateRequestDto dto);
 
-    List<CommunityResponseDto> getAllCommunities();
+    Page<CommunityResponseDto> getAllCommunities(int page, int size, String sortBy, String direction);
 
     CommunityResponseDto getCommunityById(Long communityId);
 
-    CommunityResponseDto updateCommunity(Long userId, Long communityId, CommunityRequestDto dto);
+    CommunityResponseDto updateCommunity(Long userId, Long communityId, CommunityUpdateRequestDto dto);
 
     void deleteCommunity(Long userId, Long communityId);
 
@@ -25,7 +25,7 @@ public interface CommunityService {
 
     String leaveCommunity(Long userId, Long communityId);
 
-    List<UserResponseDto> getAllMembers(Long communityId);
+    Page<UserResponseDto> getAllMembers(Long communityId, int page, int size);
 
-    List<ProjectResponseDto> getCommunityPosts(Long communityId, Long userId);
+    Page<ProjectResponseDto> getCommunityPosts(Long communityId, int page, int size, String sortBy, String direction);
 }

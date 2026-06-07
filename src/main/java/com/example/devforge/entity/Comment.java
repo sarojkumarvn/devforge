@@ -14,7 +14,13 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-@Table(name = "comments")
+@Table(
+    name = "comments",
+    indexes = {
+        @Index(name = "idx_comment_project_parent_created", columnList = "project_id, parent_id, createdAt"),
+        @Index(name = "idx_comment_user", columnList = "user_id")
+    }
+)
 public class Comment {
 
     @Id

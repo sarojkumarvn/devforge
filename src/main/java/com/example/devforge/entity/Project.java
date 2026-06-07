@@ -19,6 +19,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
@@ -32,7 +33,16 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-@Table(name = "projects")
+@Table(
+    name = "projects",
+    indexes = {
+        @Index(name = "idx_project_user_created", columnList = "user_id, createdAt"),
+        @Index(name = "idx_project_community_created", columnList = "community_id, createdAt"),
+        @Index(name = "idx_project_created", columnList = "createdAt"),
+        @Index(name = "idx_project_score", columnList = "score"),
+        @Index(name = "idx_project_title", columnList = "title")
+    }
+)
 public class Project {
 
     @Id

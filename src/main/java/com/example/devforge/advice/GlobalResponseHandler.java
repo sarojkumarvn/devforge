@@ -38,6 +38,14 @@ public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
             return body;
         }
 
+        if (body == null) {
+            return null;
+        }
+
+        if (selectedContentType == null || !MediaType.APPLICATION_JSON.includes(selectedContentType)) {
+            return body;
+        }
+
         if (body instanceof ResponseEntity) {
             return body;
         }

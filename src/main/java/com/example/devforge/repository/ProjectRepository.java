@@ -1,44 +1,120 @@
 package com.example.devforge.repository;
 
-import java.util.List;
-
-
-
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.example.devforge.entity.Project;
-import com.example.devforge.entity.User;
 
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, Long> {
 
+    @Override
+    @EntityGraph(attributePaths = {"user", "community"})
+    Page<Project> findAll(Pageable pageable);
 
-    List<Project> findByUser(User user);
-    Page<Project>
-     findByTitleContainingIgnoreCase
-     (String keyword , PageRequest pageable);
+    @EntityGraph(attributePaths = {"user", "community"})
+    @Query("""
+        SELECT p FROM Project p
+        WHERE p.isPublic = true
+           OR :isAdmin = true
+           OR p.user.id = :viewerId
+           OR EXISTS (
+                SELECT 1 FROM CommunityMember cm
+                WHERE cm.community.id = p.community.id
+                  AND cm.userId = :viewerId
+           )
+    """)
+    Page<Project> findVisibleProjects(Long viewerId, boolean isAdmin, Pageable pageable);
 
+    @EntityGraph(attributePaths = {"user", "community"})
+    Page<Project> findByUserId(Long userId, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"user", "community"})
+    @Query("""
+        SELECT p FROM Project p
+        WHERE p.user.id = :userId
+          AND (
+                p.isPublic = true
+             OR :isAdmin = true
+             OR p.user.id = :viewerId
+             OR EXISTS (
+                    SELECT 1 FROM CommunityMember cm
+                    WHERE cm.community.id = p.community.id
+                      AND cm.userId = :viewerId
+                )
+          )
+    """)
+    Page<Project> findVisibleByUserId(Long userId, Long viewerId, boolean isAdmin, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"user", "community"})
+    Page<Project> findByTitleContainingIgnoreCase(String keyword, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"user", "community"})
+    @Query("""
+        SELECT p FROM Project p
+        WHERE LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+          AND (
+                p.isPublic = true
+             OR :isAdmin = true
+             OR p.user.id = :viewerId
+             OR EXISTS (
+                    SELECT 1 FROM CommunityMember cm
+                    WHERE cm.community.id = p.community.id
+                      AND cm.userId = :viewerId
+                )
+          )
+    """)
+    Page<Project> searchVisibleByTitle(String keyword, Long viewerId, boolean isAdmin, Pageable pageable);
+
+     @EntityGraph(attributePaths = {"user", "community"})
      Page<Project> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
+      @EntityGraph(attributePaths = {"user", "community"})
       @Query("""
         SELECT p FROM Project p
         WHERE p.user.id IN :followingIds
-        ORDER BY p.createdAt DESC
     """)
-    Page<Project> findFeedProjects(List<Long> followingIds, Pageable pageable);
+    Page<Project> findFeedProjects(java.util.List<Long> followingIds, Pageable pageable);
+
+      @EntityGraph(attributePaths = {"user", "community"})
+      @Query("""
+        SELECT p FROM Project p
+        WHERE p.user.id IN (
+            SELECT f.following.id FROM Follow f WHERE f.follower.id = :userId
+        )
+          AND (
+                p.isPublic = true
+             OR :isAdmin = true
+             OR p.user.id = :viewerId
+             OR EXISTS (
+                    SELECT 1 FROM CommunityMember cm
+                    WHERE cm.community.id = p.community.id
+                      AND cm.userId = :viewerId
+                )
+          )
+    """)
+    Page<Project> findFollowingFeedProjects(Long userId, Long viewerId, boolean isAdmin, Pageable pageable);
     
 
+    @EntityGraph(attributePaths = {"user", "community"})
     @Query("""
     SELECT p FROM Project p
-    ORDER BY p.score DESC
+    WHERE p.isPublic = true
+       OR :isAdmin = true
+       OR p.user.id = :viewerId
+       OR EXISTS (
+            SELECT 1 FROM CommunityMember cm
+            WHERE cm.community.id = p.community.id
+              AND cm.userId = :viewerId
+       )
 """)
-Page<Project> findPopularFeed(Pageable pageable);
+Page<Project> findPopularFeed(Long viewerId, boolean isAdmin, Pageable pageable);
 
-List<Project> findByCommunityIdOrderByCreatedAtDesc(Long communityId);
+@EntityGraph(attributePaths = {"user", "community"})
+Page<Project> findByCommunityId(Long communityId, Pageable pageable);
 
 }

@@ -1,14 +1,20 @@
 package com.example.devforge.service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import com.example.devforge.dto.FollowRequestDto;
 import com.example.devforge.dto.FollowResponseDto;
 import com.example.devforge.entity.Follow;
 import com.example.devforge.entity.User;
+import com.example.devforge.exception.BadRequestException;
+import com.example.devforge.exception.ConflictException;
 import com.example.devforge.exception.ResourceNotFoundException;
 import com.example.devforge.repository.FollowRepository;
 import com.example.devforge.repository.UserRepository;
@@ -28,14 +34,16 @@ public class FollowServiceImpl implements FollowService {
 
     // ✅ FOLLOW USER
     @Override
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @CacheEvict(cacheNames = {"feedPages", "userProfiles", "userPages"}, allEntries = true)
     public FollowResponseDto followUser(FollowRequestDto dto) {
-        authUtil.requireCurrentUser(dto.getFollowerId());
+        Long followerId = authUtil.getCurrentUserId();
 
-        if (dto.getFollowerId().equals(dto.getFollowingId())) {
-            throw new RuntimeException("You can't follow yourself");
+        if (followerId.equals(dto.getFollowingId())) {
+            throw new BadRequestException("You can't follow yourself");
         }
 
-        User follower = userRepository.findById(dto.getFollowerId())
+        User follower = userRepository.findById(followerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Follower not found"));
 
         User following = userRepository.findById(dto.getFollowingId())
@@ -45,7 +53,7 @@ public class FollowServiceImpl implements FollowService {
                 .existsByFollowerIdAndFollowingId(follower.getId(), following.getId());
 
         if (alreadyExists) {
-            throw new RuntimeException("Already following");
+            throw new ConflictException("Already following");
         }
 
         Follow follow = new Follow();
@@ -64,21 +72,23 @@ public class FollowServiceImpl implements FollowService {
 
     // ✅ UNFOLLOW USER
     @Override
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @CacheEvict(cacheNames = {"feedPages", "userProfiles", "userPages"}, allEntries = true)
     public String unfollowUser(FollowRequestDto dto) {
-        authUtil.requireCurrentUser(dto.getFollowerId());
+        Long followerId = authUtil.getCurrentUserId();
 
         boolean exists = followRepository
                 .existsByFollowerIdAndFollowingId(
-                        dto.getFollowerId(),
+                        followerId,
                         dto.getFollowingId()
                 );
 
         if (!exists) {
-            throw new RuntimeException("Follow relationship does not exist");
+            throw new ResourceNotFoundException("Follow relationship does not exist");
         }
 
         followRepository.deleteByFollowerIdAndFollowingId(
-                dto.getFollowerId(),
+                followerId,
                 dto.getFollowingId()
         );
 
@@ -87,13 +97,13 @@ public class FollowServiceImpl implements FollowService {
 
     // ✅ GET FOLLOWERS (IDs only)
     @Override
-    public List<Long> getAllFollowers(Long userId) {
-        return followRepository.findFollowerIds(userId);
+    public Page<Long> getAllFollowers(Long userId, int page, int size) {
+        return followRepository.findFollowerIds(userId, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")));
     }
 
    
     @Override
-    public List<Long> getAllFollowings(Long userId) {
-        return followRepository.findFollowingIds(userId);
+    public Page<Long> getAllFollowings(Long userId, int page, int size) {
+        return followRepository.findFollowingIds(userId, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")));
     }
 }

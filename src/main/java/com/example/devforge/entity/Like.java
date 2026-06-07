@@ -10,13 +10,19 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.Index;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
-@Table(name = "likes" , uniqueConstraints = {
+@Table(name = "likes" ,
+indexes = {
+    @Index(name = "idx_like_user_created", columnList = "user_id, createdAt"),
+    @Index(name = "idx_like_project", columnList = "project_id")
+},
+uniqueConstraints = {
     @UniqueConstraint(columnNames = {"user_id" , "project_id"})
 })
 public class Like {

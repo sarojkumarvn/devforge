@@ -4,12 +4,20 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import com.example.devforge.dto.ProjectResponseDto;
 import com.example.devforge.entity.Like;
 import com.example.devforge.entity.Project;
 import com.example.devforge.entity.User;
+import com.example.devforge.entity.enums.Role;
+import com.example.devforge.exception.ConflictException;
+import com.example.devforge.exception.ResourceNotFoundException;
+import com.example.devforge.repository.CommunityMemberRepository;
 import com.example.devforge.repository.LikeRepository;
 import com.example.devforge.repository.ProjectRepository;
 import com.example.devforge.repository.UserRepository;
@@ -29,21 +37,25 @@ public class LikeServiceImple implements LikeService {
     private final ModelMapper modelMapper ;
     private final FeedScoreStrategy feedScoreStrategy ;
     private final AuthUtil authUtil;
+    private final CommunityMemberRepository communityMemberRepository;
     
 
     @Override
-    public void likeProject(Long userId, Long projectId) {
-           authUtil.requireCurrentUser(userId);
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @CacheEvict(cacheNames = {"projects", "projectPages", "feedPages", "communityPosts", "likedProjects"}, allEntries = true)
+    public void likeProject(Long projectId) {
+           Long userId = authUtil.getCurrentUserId();
 
            if (likeRepository.findByUserIdAndProjectId(userId, projectId).isPresent()) {
-            throw new RuntimeException("Already liked this project");
+            throw new ConflictException("Already liked this project");
         }
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new RuntimeException("Project not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+        requireCanViewProject(project);
 
         Like like = new Like();
         like.setUser(user);
@@ -60,11 +72,14 @@ public class LikeServiceImple implements LikeService {
     }
 
     @Override
-    public void unlikeProject(Long userId, Long projectId) {
-        authUtil.requireCurrentUser(userId);
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @CacheEvict(cacheNames = {"projects", "projectPages", "feedPages", "communityPosts", "likedProjects"}, allEntries = true)
+    public void unlikeProject(Long projectId) {
+        Long userId = authUtil.getCurrentUserId();
 
         Like like = likeRepository.findByUserIdAndProjectId(userId, projectId)
-                .orElseThrow(() -> new RuntimeException("Like not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Like not found"));
+        requireCanViewProject(like.getProject());
 
         like.getProject().decrementLikeCount();
         likeRepository.delete(like);
@@ -72,8 +87,10 @@ public class LikeServiceImple implements LikeService {
     }
 
     @Override
-    public List<ProjectResponseDto> getLikedProjectsLast90Days(Long userId) {
-        authUtil.requireCurrentUser(userId);
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @Cacheable(cacheNames = "likedProjects", key = "@authUtil.getCurrentCacheUserId()")
+    public List<ProjectResponseDto> getLikedProjectsLast90Days() {
+        Long userId = authUtil.getCurrentUserId();
 
         LocalDateTime last90days = LocalDateTime.now().minusDays(90);
 
@@ -81,9 +98,30 @@ public class LikeServiceImple implements LikeService {
         return likeRepository
                 .findByUserIdAndCreatedAtAfter(userId, last90days)
                 .stream()
+                .filter(like -> canViewProject(like.getProject()))
                 .map(like -> modelMapper.map(like.getProject() , ProjectResponseDto.class)).toList(); 
                 
 
+    }
+
+    private void requireCanViewProject(Project project) {
+        if (!canViewProject(project)) {
+            throw new AccessDeniedException("Forbidden");
+        }
+    }
+
+    private boolean canViewProject(Project project) {
+        if (Boolean.TRUE.equals(project.getIsPublic())) {
+            return true;
+        }
+
+        return authUtil.getCurrentUserOptional()
+                .map(user -> user.getRole() == Role.ADMIN
+                        || user.getId().equals(project.getUser().getId())
+                        || (project.getCommunity() != null
+                                && communityMemberRepository.existsByUserIdAndCommunityId(
+                                        user.getId(), project.getCommunity().getId())))
+                .orElse(false);
     }
     
 

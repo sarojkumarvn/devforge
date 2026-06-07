@@ -13,10 +13,10 @@ import com.example.devforge.dto.ProjectResponseDto;
 
 public interface BookMarkService {
 
-    void bookmarkProject(Long userId , Long projectId) ;
-    void removeBookmark(Long userId, Long projectId);
+    void bookmarkProject(Long projectId) ;
+    void removeBookmark(Long projectId);
 
-    List<ProjectResponseDto> getBookmarkedProjectsLast90Days(Long userId);
+    List<ProjectResponseDto> getBookmarkedProjectsLast90Days();
     
 
 }

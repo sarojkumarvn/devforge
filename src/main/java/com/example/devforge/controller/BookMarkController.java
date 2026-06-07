@@ -3,6 +3,7 @@ package com.example.devforge.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,21 +16,23 @@ import com.example.devforge.advice.ApiResponse;
 import com.example.devforge.dto.ProjectResponseDto;
 import com.example.devforge.service.BookMarkService;
 
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/bookmarks")
 @RequiredArgsConstructor
+@Validated
 public class BookMarkController {
     private final BookMarkService bookMarkService ;
 
    
  @PostMapping("/bookmark")
 public ResponseEntity<ApiResponse<Object>> bookmarkProject(
-        @RequestParam Long userId,
-        @RequestParam Long projectId
+        @RequestParam(required = false) Long userId,
+        @Positive @RequestParam Long projectId
 ) {
-    bookMarkService.bookmarkProject(userId, projectId);
+    bookMarkService.bookmarkProject(projectId);
 
     return ResponseEntity.ok(
             new ApiResponse<>("Project bookmarked successfully", null, true)
@@ -39,10 +42,10 @@ public ResponseEntity<ApiResponse<Object>> bookmarkProject(
    
     @DeleteMapping
     public ResponseEntity<ApiResponse<Object>> removeBookmark(
-            @RequestParam Long userId,
-            @RequestParam Long projectId
+            @Positive @RequestParam Long userId,
+            @Positive @RequestParam Long projectId
     ) {
-        bookMarkService.removeBookmark(userId, projectId);
+        bookMarkService.removeBookmark(projectId);
          return ResponseEntity.ok(
             new ApiResponse<>("BookMark removed successfully", null, true)
     );
@@ -50,10 +53,10 @@ public ResponseEntity<ApiResponse<Object>> bookmarkProject(
 
     @GetMapping("/{userId}/recent")
     public ResponseEntity<List<ProjectResponseDto>> getRecentBookmarks(
-            @PathVariable Long userId
+            @Positive @PathVariable Long userId
     ) {
         return ResponseEntity.ok(
-                bookMarkService.getBookmarkedProjectsLast90Days(userId)
+                bookMarkService.getBookmarkedProjectsLast90Days()
         );
     }
 

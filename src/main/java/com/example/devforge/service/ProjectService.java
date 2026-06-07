@@ -1,24 +1,24 @@
 package com.example.devforge.service;
 
-import java.util.List;
-
-import com.example.devforge.dto.ProjectRequestDto;
+import org.springframework.data.domain.Page;
+import com.example.devforge.dto.ProjectCreateRequestDto;
 import com.example.devforge.dto.ProjectResponseDto;
+import com.example.devforge.dto.ProjectUpdateRequestDto;
 
 public interface ProjectService {
-    ProjectResponseDto createProject(Long userId ,ProjectRequestDto dto) ; ///Create the project 
+    ProjectResponseDto createProject(Long userId ,ProjectCreateRequestDto dto) ; ///Create the project 
 
-    ProjectResponseDto updateProject(Long userId, Long projectId , ProjectRequestDto dto) ; // update the project 
+    ProjectResponseDto updateProject(Long userId, Long projectId , ProjectUpdateRequestDto dto) ; // update the project 
 
     void deleteProject(Long userId , Long projectId) ;  // service to delte the project 
     ProjectResponseDto getProjectById(Long projectId) ; // service to get the poject by the project id 
 
-    List<ProjectResponseDto> getAllProjects() ; // here we can get all the projects 
+    Page<ProjectResponseDto> getAllProjects(int page, int size, String sortBy, String direction) ; // here we can get all the projects 
      // get the projects by the user id 
 
-    List<ProjectResponseDto> getProjectsByUser(Long userId);
+    Page<ProjectResponseDto> getProjectsByUser(Long userId, int page, int size, String sortBy, String direction);
 
-    List<ProjectResponseDto> searchProjects(String keyword , int page , int size);
+    Page<ProjectResponseDto> searchProjects(String keyword , int page , int size, String sortBy, String direction);
     
 
    

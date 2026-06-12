@@ -18,6 +18,7 @@ public class UserResponseDto {
     private String userName;
     private String bio;
     private String profilePictureUrl;
+    private String coverPictureUrl;
     private String location;
 
     private Set<String> skills;

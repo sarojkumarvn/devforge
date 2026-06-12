@@ -71,6 +71,7 @@ public class UserServiceImple implements UserService {
                 .build();
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setProfilePictureUrl(dto.getProfilePictureUrl());
+        user.setCoverPictureUrl(dto.getCoverPictureUrl());
         user.setDateOfBirth(dto.getDateOfBirth());
         user.setBio(dto.getBio());
         user.setLocation(dto.getLocation());
@@ -140,6 +141,9 @@ public class UserServiceImple implements UserService {
         if (dto.getProfilePictureUrl() != null) {
             user.setProfilePictureUrl(dto.getProfilePictureUrl());
         }
+        if (dto.getCoverPictureUrl() != null) {
+            user.setCoverPictureUrl(dto.getCoverPictureUrl());
+        }
 
         User updatedUser = userRepository.save(user);
 
@@ -207,9 +211,10 @@ public class UserServiceImple implements UserService {
         dto.setUserName(user.getUserName());
         dto.setBio(user.getBio());
         dto.setProfilePictureUrl(user.getProfilePictureUrl());
+        dto.setCoverPictureUrl(user.getCoverPictureUrl());
         dto.setLocation(user.getLocation());
-        dto.setSkills(user.getSkills());
-        dto.setInterests(user.getInterests());
+        dto.setSkills(user.getSkills() == null ? Set.of() : Set.copyOf(user.getSkills()));
+        dto.setInterests(user.getInterests() == null ? Set.of() : Set.copyOf(user.getInterests()));
         dto.setFollowerCount(user.getFollowerCount());
         dto.setFollowingCount(user.getFollowingCount());
         return dto;

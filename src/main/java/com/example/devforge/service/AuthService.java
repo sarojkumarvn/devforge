@@ -66,6 +66,7 @@ public class AuthService {
         .build();
 
     user.setProfilePictureUrl(signupRequestDto.getProfilePictureUrl());
+    user.setCoverPictureUrl(signupRequestDto.getCoverPictureUrl());
     user.setDateOfBirth(signupRequestDto.getDateOfBirth());
     user.setBio(signupRequestDto.getBio());
     user.setLocation(signupRequestDto.getLocation());

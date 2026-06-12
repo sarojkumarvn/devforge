@@ -64,6 +64,9 @@ public class User implements UserDetails {
     private String profilePictureUrl;
 
     @Column(nullable = true, length = 500)
+    private String coverPictureUrl;
+
+    @Column(nullable = true, length = 500)
     private String bio;
 
     @Column(nullable = true)

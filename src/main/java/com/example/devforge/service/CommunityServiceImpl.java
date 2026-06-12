@@ -300,7 +300,19 @@ public CommunityResponseDto createCommunity(Long userId, CommunityCreateRequestD
         dto.setLogoUrl(community.getLogoUrl());
         dto.setBannerUrl(community.getBannerUrl());
         dto.setPrivacy(community.getPrivacy());
+        dto.setCanManage(canManageCommunity(community.getId()));
         return dto;
+    }
+
+    private boolean canManageCommunity(Long communityId) {
+        if (authUtil.isAdmin()) {
+            return true;
+        }
+
+        return authUtil.getCurrentUserIdOptional()
+                .flatMap(userId -> communityMemberRepository.findByUserIdAndCommunityId(userId, communityId))
+                .map(member -> member.getRole() == Role.ADMIN)
+                .orElse(false);
     }
 
     private UserResponseDto toUserResponse(User user) {
@@ -309,6 +321,7 @@ public CommunityResponseDto createCommunity(Long userId, CommunityCreateRequestD
         dto.setUserName(user.getUserName());
         dto.setBio(user.getBio());
         dto.setProfilePictureUrl(user.getProfilePictureUrl());
+        dto.setCoverPictureUrl(user.getCoverPictureUrl());
         dto.setLocation(user.getLocation());
         dto.setSkills(user.getSkills());
         dto.setInterests(user.getInterests());

@@ -16,4 +16,5 @@ public class CommunityResponseDto {
     private String logoUrl;
     private String bannerUrl;
     private PrivacyType privacy;
+    private boolean canManage;
 }

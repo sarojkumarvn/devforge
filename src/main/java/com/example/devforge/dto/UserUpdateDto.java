@@ -27,6 +27,9 @@ public class UserUpdateDto {
     @Size(max = 500)
     private String profilePictureUrl;
 
+    @Size(max = 500)
+    private String coverPictureUrl;
+
     @Size(max = 120)
     private String location;
 

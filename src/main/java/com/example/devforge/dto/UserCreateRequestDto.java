@@ -29,6 +29,9 @@ public class UserCreateRequestDto {
     @Size(max = 500)
     private String profilePictureUrl;
 
+    @Size(max = 500)
+    private String coverPictureUrl;
+
     @Past
     private LocalDate dateOfBirth;
 

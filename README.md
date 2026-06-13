@@ -83,6 +83,30 @@ Production uses Flyway with `spring.jpa.hibernate.ddl-auto=validate`.
 
 For an existing non-empty database, `spring.flyway.baseline-on-migrate=true` is enabled by default. Before first production deployment, verify the migration matches the live schema and remove duplicate data that conflicts with unique constraints.
 
+## Neon Demo Verification
+
+With the backend running against Neon, create a persistent 10-user demo dataset through the authenticated API:
+
+```bash
+DEMO_PASSWORD='use-a-strong-demo-password' ./scripts/seed-neon-demo.sh
+```
+
+Optional variables:
+
+```bash
+API_BASE_URL=http://localhost:8080/api/v1
+RUN_ID=release-check-01
+REPORT_DIR=.seed-reports
+```
+
+The script creates uniquely named users, projects, a community, memberships, follows, likes, bookmarks, comments, and replies. It does not delete or overwrite existing data. Reports are written beneath the ignored `.seed-reports/` directory and never include passwords or JWTs.
+
+To verify a previously created run without adding duplicate records:
+
+```bash
+MODE=verify RUN_ID=release-check-01 DEMO_PASSWORD='the-original-demo-password' ./scripts/seed-neon-demo.sh
+```
+
 ## OpenAPI
 
 Swagger UI:

@@ -2,13 +2,14 @@ package com.example.devforge.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
-import org.modelmapper.ModelMapper;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.devforge.dto.ProjectResponseDto;
 import com.example.devforge.entity.Like;
@@ -29,18 +30,19 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class LikeServiceImple implements LikeService {
 
     private final LikeRepository likeRepository ;
     private final UserRepository userRepository ;
     private final ProjectRepository projectRepository ;
-    private final ModelMapper modelMapper ;
     private final FeedScoreStrategy feedScoreStrategy ;
     private final AuthUtil authUtil;
     private final CommunityMemberRepository communityMemberRepository;
     
 
     @Override
+    @Transactional
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @CacheEvict(cacheNames = {"projects", "projectPages", "feedPages", "communityPosts", "likedProjects"}, allEntries = true)
     public void likeProject(Long projectId) {
@@ -72,6 +74,7 @@ public class LikeServiceImple implements LikeService {
     }
 
     @Override
+    @Transactional
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @CacheEvict(cacheNames = {"projects", "projectPages", "feedPages", "communityPosts", "likedProjects"}, allEntries = true)
     public void unlikeProject(Long projectId) {
@@ -99,7 +102,8 @@ public class LikeServiceImple implements LikeService {
                 .findByUserIdAndCreatedAtAfter(userId, last90days)
                 .stream()
                 .filter(like -> canViewProject(like.getProject()))
-                .map(like -> modelMapper.map(like.getProject() , ProjectResponseDto.class)).toList(); 
+                .map(like -> mapToResponse(like.getProject()))
+                .toList();
                 
 
     }
@@ -108,6 +112,29 @@ public class LikeServiceImple implements LikeService {
         if (!canViewProject(project)) {
             throw new AccessDeniedException("Forbidden");
         }
+    }
+
+    private ProjectResponseDto mapToResponse(Project project) {
+        ProjectResponseDto dto = new ProjectResponseDto();
+        dto.setId(project.getId());
+        dto.setTitle(project.getTitle());
+        dto.setDescription(project.getDescription());
+        dto.setGithubLink(project.getGithubLink());
+        dto.setLiveDemoLink(project.getLiveDemoLink());
+        dto.setTechStacks(Set.copyOf(project.getTechStacks()));
+        dto.setStatus(project.getStatus());
+        dto.setPhotos(project.getPhotos().toArray(new String[0]));
+        dto.setUserId(project.getUser().getId());
+        dto.setUserName(project.getUser().getUserName());
+        dto.setCreatedAt(project.getCreatedAt());
+        dto.setIsPublic(project.getIsPublic());
+        dto.setLikeCount(project.getLikeCount());
+        dto.setCommentCount(project.getCommentCount());
+        dto.setBookmarkCount(project.getBookmarkCount());
+        if (project.getCommunity() != null) {
+            dto.setCommunityId(project.getCommunity().getId());
+        }
+        return dto;
     }
 
     private boolean canViewProject(Project project) {

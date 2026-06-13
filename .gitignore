@@ -37,3 +37,6 @@ data/
 
 ### Local secrets ###
 .env
+
+### Local integration reports ###
+.seed-reports/

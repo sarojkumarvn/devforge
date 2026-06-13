@@ -235,7 +235,7 @@ public class ProjectServiceImple implements ProjectService {
         dto.setDescription(project.getDescription());
         dto.setGithubLink(project.getGithubLink());
         dto.setLiveDemoLink(project.getLiveDemoLink());
-        dto.setTechStacks(project.getTechStacks());
+        dto.setTechStacks(Set.copyOf(project.getTechStacks()));
         dto.setStatus(project.getStatus());
         dto.setPhotos(project.getPhotos().toArray(new String[0]));
         dto.setUserId(project.getUser().getId());

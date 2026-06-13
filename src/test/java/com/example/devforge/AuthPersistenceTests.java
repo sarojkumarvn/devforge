@@ -119,5 +119,50 @@ class AuthPersistenceTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.bannerUrl").value("https://example.com/community-banner.jpg"))
                 .andExpect(jsonPath("$.data.canManage").value(false));
+
+        mockMvc.perform(get("/communities/{communityId}/members", communityId)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.totalElements").value(1))
+                .andExpect(jsonPath("$.data.content[0].userName").value("communityowner"))
+                .andExpect(jsonPath("$.data.content[0].skills").isArray())
+                .andExpect(jsonPath("$.data.content[0].interests").isArray());
+
+        String projectResponse = mockMvc.perform(post("/users/{userId}/projects", userId)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "title": "Serializable project",
+                                  "description": "Verifies project collections remain serializable.",
+                                  "techStacks": ["Java", "PostgreSQL"],
+                                  "photos": [],
+                                  "isPublic": true
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        long projectId = objectMapper.readTree(projectResponse).path("data").path("id").asLong();
+
+        mockMvc.perform(get("/projects")
+                        .param("userId", String.valueOf(userId))
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.totalElements").value(1))
+                .andExpect(jsonPath("$.data.content[0].techStacks").isArray());
+
+        mockMvc.perform(post("/projects/{projectId}/likes", projectId)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/users/{userId}/likes", userId)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].id").value(projectId))
+                .andExpect(jsonPath("$.data[0].photos").isArray())
+                .andExpect(jsonPath("$.data[0].techStacks").isArray());
     }
 }

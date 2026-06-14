@@ -19,10 +19,13 @@ public class NeonDatabaseEnvironmentPostProcessor implements EnvironmentPostProc
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
         Map<String, Object> properties = new LinkedHashMap<>();
 
+        String dbUrl = environment.getProperty("DB_URL");
         String databaseUrl = environment.getProperty("DATABASE_URL");
-        if (StringUtils.hasText(databaseUrl)) {
+        if (StringUtils.hasText(dbUrl)) {
+            applyDatabaseUrl(dbUrl, properties);
+        } else if (StringUtils.hasText(databaseUrl)) {
             applyDatabaseUrl(databaseUrl, properties);
-        } else if (!StringUtils.hasText(environment.getProperty("DB_URL"))) {
+        } else {
             applyDatabaseParts(environment, properties);
         }
 
@@ -42,7 +45,12 @@ public class NeonDatabaseEnvironmentPostProcessor implements EnvironmentPostProc
     }
 
     private void applyDatabaseUrl(String databaseUrl, Map<String, Object> properties) {
-        URI uri = URI.create(databaseUrl);
+        String normalizedUrl = databaseUrl.trim();
+        if (normalizedUrl.regionMatches(true, 0, "jdbc:", 0, "jdbc:".length())) {
+            normalizedUrl = normalizedUrl.substring("jdbc:".length());
+        }
+
+        URI uri = URI.create(normalizedUrl);
         String scheme = uri.getScheme();
         if (!"postgresql".equalsIgnoreCase(scheme) && !"postgres".equalsIgnoreCase(scheme)) {
             return;

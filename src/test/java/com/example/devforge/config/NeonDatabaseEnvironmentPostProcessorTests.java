@@ -56,4 +56,4 @@ class NeonDatabaseEnvironmentPostProcessorTests {
         environment.getPropertySources().addFirst(new MapPropertySource("test", properties));
         return environment;
     }
-}
+} 
